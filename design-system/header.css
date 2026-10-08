@@ -1,0 +1,20 @@
+/* Shared application header: independent of the active page. */
+#crm-preview>header,#crm-preview.ds-projects>header{height:64px;min-height:64px;padding:0 32px;gap:24px;display:flex;align-items:center;flex-wrap:nowrap;background:#fff;color:#1f2937;border-bottom:1px solid #e5e7eb;font-family:Inter,system-ui,sans-serif}
+#crm-preview>header .brand,#crm-preview.ds-projects>header .brand{font:600 18px/28px Inter,system-ui,sans-serif;letter-spacing:0;margin:0;flex-shrink:0}
+#crm-preview>header nav,#crm-preview.ds-projects>header nav{display:flex;align-items:center;gap:24px;margin:0;padding:0;border:0;background:transparent;flex-shrink:0}
+#crm-preview>header nav button,#crm-preview.ds-projects>header nav button{font:600 14px/22px Inter,system-ui,sans-serif;letter-spacing:0;height:40px;min-height:40px;width:auto;margin:0;padding:0;border:0;border-radius:6px;box-shadow:none;background:transparent;color:#64748b}
+#crm-preview>header nav button:hover,#crm-preview.ds-projects>header nav button:hover{background:transparent;color:#64748b;border:0;box-shadow:none}
+#crm-preview>header nav button[aria-pressed=true],#crm-preview.ds-projects>header nav button[aria-pressed=true]{background:transparent;color:#3366ff;border:0;box-shadow:none}
+#crm-preview>header .account-switch,#crm-preview.ds-projects>header .account-switch{display:flex;align-items:center;gap:12px;margin:0 0 0 auto;padding:0;flex-wrap:nowrap;flex-basis:auto;flex-shrink:0}
+#crm-preview>header small,#crm-preview.ds-projects>header small{font:400 12px/18px Inter,system-ui,sans-serif;color:#64748b}
+#crm-preview>header #account,#crm-preview.ds-projects>header #account{font:400 14px/22px Inter,system-ui,sans-serif;height:40px;width:auto;margin:0;padding:0 12px;border:1px solid #e5e7eb;border-radius:6px;background:#fff;color:#1f2937}
+@media(max-width:1200px){#crm-preview>header,#crm-preview.ds-projects>header{padding:0 24px}}
+@media(max-width:700px){#crm-preview>header,#crm-preview.ds-projects>header{overflow-x:auto}}
+@media(max-width:700px){
+ #crm-preview>header,#crm-preview.ds-projects>header{height:auto;min-height:104px;display:grid;grid-template-columns:1fr auto;gap:8px 12px;padding:12px 16px}
+ #crm-preview>header .brand,#crm-preview.ds-projects>header .brand{font-size:16px}
+ #crm-preview>header nav,#crm-preview.ds-projects>header nav{grid-column:1/-1;grid-row:2;justify-content:space-between;gap:16px}
+ #crm-preview>header .account-switch,#crm-preview.ds-projects>header .account-switch{grid-column:2;grid-row:1;margin:0;min-width:0}
+ #crm-preview>header .account-switch small{display:none}
+ #crm-preview>header #account{max-width:160px;font-size:12px}
+}
