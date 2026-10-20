@@ -52,11 +52,8 @@
 #crm-preview.ds-projects .box{margin:0;padding:var(--space-6);border:1px solid var(--line);border-radius:var(--radius-card);background:var(--paper);box-shadow:none}
 #crm-preview.ds-projects .campaign-grid .box{display:grid;gap:var(--space-3)}
 #crm-preview.ds-projects .ds-empty{padding:var(--space-8);color:var(--dim)}
-#crm-preview.ds-projects .detail-drawer{background:var(--paper)}
-#crm-preview.ds-projects .drawer-head,#crm-preview.ds-projects .profile-main{padding:var(--space-6)}
 #crm-preview.ds-projects .grid{gap:var(--space-6)}
 #crm-preview.ds-projects .actions{gap:var(--space-3);margin-top:var(--space-6)}
-#crm-preview.ds-projects .detail-tabs{gap:var(--space-2);margin:var(--space-6) 0}
 #crm-preview.ds-projects .profile-stats{gap:var(--space-6);margin:var(--space-6) 0}
 #crm-preview.ds-projects .member{display:flex;gap:var(--space-2);padding:var(--space-2)}
 #crm-preview.ds-projects .member input{width:auto;height:auto}
@@ -101,18 +98,13 @@
 #crm-preview.ds-projects .creator-project-tags{flex-wrap:wrap}
 #crm-preview.ds-projects .campaign-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
 #crm-preview.ds-projects .ds-empty{display:grid;justify-items:start;gap:var(--space-3);background:var(--paper);border:1px dashed var(--strong-border);border-radius:var(--radius-card)}
-#crm-preview.ds-projects .detail-drawer{position:fixed;top:0;right:0;bottom:0;width:min(760px,90vw);height:100dvh;z-index:1000;overflow-y:auto;border-left:1px solid var(--line);box-shadow:-12px 0 48px #1f293725}
-#crm-preview.ds-projects .drawer-head{position:sticky;top:0;z-index:2;background:var(--paper);border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:var(--space-4)}
-#crm-preview.ds-projects .profile-main{display:grid;gap:var(--space-6);overflow-wrap:anywhere}
 #crm-preview.ds-projects .profile-main .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--space-4)}
 #crm-preview.ds-projects .full{grid-column:1/-1}
 #crm-preview.ds-projects .profile-main .box{display:grid;gap:var(--space-3)}
 #crm-preview.ds-projects .profile-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:0}
 #crm-preview.ds-projects .profile-stats strong{display:block;font:var(--type-section)}
 #crm-preview.ds-projects .profile-hero{display:flex;gap:var(--space-4);align-items:center}
-#crm-preview.ds-projects .detail-tabs{display:flex;margin:0}
 #crm-preview.ds-projects .detail-tabs button[aria-pressed=true]{border-color:var(--brand);color:var(--brand);background:#f1f5ff}
-#crm-preview.ds-projects .operation-panel{display:grid;gap:var(--space-4);padding-top:var(--space-6);border-top:1px solid var(--line);margin-top:var(--space-3)}
 #crm-preview.ds-projects .operation-panel form{padding:var(--space-4);border:1px solid var(--line);border-radius:var(--radius-card)}
 #crm-preview.ds-projects .operation-panel form[data-kind=reject],#crm-preview.ds-projects .operation-panel form[data-kind=decline]{background:var(--page-bg)}
 #crm-preview.ds-projects .operation-panel :is(form[data-kind=reject],form[data-kind=decline]) button{background:var(--paper);color:var(--ink);border-color:var(--strong-border)}
@@ -123,7 +115,7 @@
 #crm-preview.ds-projects #dialog-message[data-error=true]{color:#b42318;background:#fff1f0}
 #crm-preview.ds-projects #crm-feedback:not(:empty){margin-top:var(--space-6);padding:var(--space-4);background:#edf4ff;border-radius:var(--radius-card)}
 @media(max-width:1100px){#crm-preview.ds-projects .ds-summary,#crm-preview.ds-projects .campaign-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){#crm-preview.ds-projects main{padding:var(--space-4)}#crm-preview.ds-projects .ds-summary{gap:var(--space-3)}#crm-preview.ds-projects .ds-metric{padding:var(--space-4)}#crm-preview.ds-projects .campaign-grid{grid-template-columns:1fr}#crm-preview.ds-projects .detail-drawer{width:100vw}#crm-preview.ds-projects .profile-main .grid{grid-template-columns:1fr}#crm-preview.ds-projects .drawer-head,#crm-preview.ds-projects .profile-main{padding:var(--space-4)}#crm-preview.ds-projects .ds-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));padding:var(--space-4)}#crm-preview.ds-projects .ds-toolbar>label:first-child{grid-column:1/-1}}
+@media(max-width:700px){#crm-preview.ds-projects main{padding:var(--space-4)}#crm-preview.ds-projects .ds-summary{gap:var(--space-3)}#crm-preview.ds-projects .ds-metric{padding:var(--space-4)}#crm-preview.ds-projects .campaign-grid{grid-template-columns:1fr}#crm-preview.ds-projects .profile-main .grid{grid-template-columns:1fr}#crm-preview.ds-projects .ds-toolbar{grid-template-columns:repeat(2,minmax(0,1fr));padding:var(--space-4)}#crm-preview.ds-projects .ds-toolbar>label:first-child{grid-column:1/-1}}
 html,body{margin:0;padding:0;background:#f8fafc;font-family:Inter,system-ui,sans-serif}
 #crm-preview>header{position:fixed;top:0;left:0;right:0;z-index:100}
 #crm-preview.ds-projects a{color:var(--brand);text-decoration:none;overflow-wrap:anywhere}
@@ -136,12 +128,9 @@ html,body{margin:0;padding:0;background:#f8fafc;font-family:Inter,system-ui,sans
 #crm-preview.ds-projects .actions{display:flex;flex-wrap:wrap;align-items:center}
 #crm-preview.ds-projects .creator-actions button{white-space:normal;height:auto;min-height:32px;font-size:12px;padding:6px 8px}
 #crm-preview.ds-projects .creator-actions button.primary{height:auto}
-#crm-preview.ds-projects .operation-panel{scroll-margin-top:88px}
 #crm-preview.ds-projects .profile-hero h2{font:var(--type-section);margin:0}
 /* Creator profile: compact identity, structured facts and a persistent action. */
 #crm-preview.ds-projects .creator-profile-drawer{width:min(640px,100vw);display:flex;flex-direction:column;overflow:hidden}
-#crm-preview.ds-projects .creator-profile-drawer .drawer-head{flex:none;padding:var(--space-4) var(--space-6);min-height:72px}
-#crm-preview.ds-projects .creator-profile-drawer .profile-main{flex:1;min-height:0;overflow-y:auto;align-content:start;gap:var(--space-6);padding:var(--space-6);background:var(--paper);overscroll-behavior:contain}
 #crm-preview.ds-projects .creator-overview{border:1px solid var(--line);border-radius:var(--radius-panel);padding:var(--space-6);background:linear-gradient(125deg,#f5f8ff,var(--paper) 65%)}
 #crm-preview.ds-projects .creator-identity{display:flex;gap:var(--space-4);align-items:center}
 #crm-preview.ds-projects .creator-identity>div{min-width:0}
@@ -178,7 +167,7 @@ html,body{margin:0;padding:0;background:#f8fafc;font-family:Inter,system-ui,sans
 #crm-preview.ds-projects .creator-profile-footer>span{font:var(--type-secondary);color:var(--dim)}
 #crm-preview.ds-projects .creator-profile-footer button{flex-shrink:0}
 #crm-preview.ds-projects .creator-profile-drawer #dialog-message:empty{display:none}
-@media(max-width:560px){#crm-preview.ds-projects .creator-profile-drawer .profile-main{padding:var(--space-4);gap:var(--space-4)}#crm-preview.ds-projects .creator-overview{padding:var(--space-4)}#crm-preview.ds-projects .creator-kpis{gap:var(--space-2)}#crm-preview.ds-projects .creator-kpis strong{font-size:21px}#crm-preview.ds-projects .creator-profile-footer{padding:var(--space-3) var(--space-4)}#crm-preview.ds-projects .creator-profile-footer>span{max-width:140px}#crm-preview.ds-projects .creator-projects button{flex-wrap:wrap}#crm-preview.ds-projects .creator-projects .status{max-width:100%;height:auto}}
+@media(max-width:560px){#crm-preview.ds-projects .creator-overview{padding:var(--space-4)}#crm-preview.ds-projects .creator-kpis{gap:var(--space-2)}#crm-preview.ds-projects .creator-kpis strong{font-size:21px}#crm-preview.ds-projects .creator-profile-footer{padding:var(--space-3) var(--space-4)}#crm-preview.ds-projects .creator-profile-footer>span{max-width:140px}#crm-preview.ds-projects .creator-projects button{flex-wrap:wrap}#crm-preview.ds-projects .creator-projects .status{max-width:100%;height:auto}}
 /* Shared workflow workspace: each presentation uses the same order selection. */
 #crm-preview.ds-projects .view-toolbar,#crm-preview.ds-projects .view-tools,#crm-preview.ds-projects .segmented,#crm-preview.ds-projects .saved-views{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 #crm-preview.ds-projects .view-toolbar{justify-content:space-between}
@@ -207,12 +196,8 @@ html,body{margin:0;padding:0;background:#f8fafc;font-family:Inter,system-ui,sans
 #crm-preview.ds-projects .unscheduled h3,#crm-preview.ds-projects .unscheduled p{flex-basis:100%}
 #crm-preview.ds-projects .coop-summary{display:grid;gap:8px;padding:20px;border:1px solid #dbe5ff;border-radius:12px;background:linear-gradient(120deg,#f1f5ff,white)}
 #crm-preview.ds-projects .coop-summary .status{justify-self:start}
-#crm-preview.ds-projects .operation-panel{padding:20px;background:#f8faff;border:1px solid #dbe5ff;border-radius:12px;margin-top:20px}
 #crm-preview.ds-projects .operation-panel>button{justify-self:start;height:auto;min-height:40px}
 #crm-preview.ds-projects .operation-panel form{background:white}
-#crm-preview.ds-projects .progress-track{display:flex;gap:8px;list-style:none;overflow-x:auto;padding:16px 0;margin:0}
-#crm-preview.ds-projects .progress-track li{flex-shrink:0;padding:8px 12px;border-radius:20px;background:#f1f5f9;font-size:12px;color:var(--dim)}
-#crm-preview.ds-projects .progress-track li[aria-current]{background:var(--brand);color:white}
 #crm-preview.ds-projects .delivery-version{padding:16px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;overflow-wrap:anywhere}
 #crm-preview.ds-projects summary{cursor:pointer;font-weight:600;padding:8px 0}
 #crm-preview.ds-projects .review-entry{padding:12px 0;border-top:1px solid var(--line);margin-top:12px;overflow-wrap:anywhere}
@@ -228,8 +213,52 @@ html,body{margin:0;padding:0;background:#f8fafc;font-family:Inter,system-ui,sans
 #crm-preview.ds-projects .stage-distribution{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;margin-top:16px}
 #crm-preview.ds-projects .stage-distribution button{height:auto;padding:12px;display:flex;justify-content:space-between;gap:8px}
 #crm-preview.ds-projects progress{display:block;width:100%;height:14px;margin:16px 0;accent-color:var(--brand)}
-#crm-preview.ds-projects .profile-main>.creator-section{margin-top:16px}
 #crm-preview.ds-projects .orders small{white-space:normal;max-width:220px}
 #crm-preview.ds-projects .status{height:auto;min-height:24px;white-space:normal}
 #crm-preview.ds-projects .creator-facts dd{word-break:break-word}
-@media(max-width:700px){#crm-preview.ds-projects .view-tools{width:100%}#crm-preview.ds-projects .calendar-panel{padding:12px}#crm-preview.ds-projects .operation-panel{padding:12px}#crm-preview.ds-projects .coop-summary{padding:16px}#crm-preview.ds-projects .ds-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#crm-preview.ds-projects .saved-view-row{flex-wrap:wrap}}
+@media(max-width:700px){#crm-preview.ds-projects .view-tools{width:100%}#crm-preview.ds-projects .calendar-panel{padding:12px}#crm-preview.ds-projects .coop-summary{padding:16px}#crm-preview.ds-projects .ds-summary{grid-template-columns:repeat(2,minmax(0,1fr))}#crm-preview.ds-projects .saved-view-row{flex-wrap:wrap}}
+#crm-preview.ds-projects .creator-project-progress-list{display:flex;flex-direction:column;gap:10px;align-items:stretch}
+#crm-preview.ds-projects .creator-project-progress{display:flex;flex-direction:column;align-items:flex-start;gap:6px;height:auto;min-height:88px;padding:12px;text-align:left;background:#f5f8ff;border:1px solid #e0e8ff;border-radius:8px;white-space:normal;overflow-wrap:anywhere;width:100%;min-width:0}
+#crm-preview.ds-projects .creator-project-progress strong{font-size:14px;color:var(--ink)}
+#crm-preview.ds-projects .creator-project-progress span{font-size:12px;color:var(--brand)}
+#crm-preview.ds-projects .creator-project-progress small,#crm-preview.ds-projects .creator-project-empty{font-size:12px;color:var(--dim)}
+#crm-preview.ds-projects .creator-card-platform{font-size:12px;margin:8px 0;overflow-wrap:anywhere}
+#crm-preview.ds-projects .creator-card-platform a{color:var(--brand);text-decoration:none}
+#crm-preview.ds-projects .compact-controls{position:relative;display:flex;flex-direction:column;gap:12px;padding:12px 0;min-width:0}
+#crm-preview.ds-projects .compact-top,#crm-preview.ds-projects .compact-view,#crm-preview.ds-projects .compact-search{display:flex;align-items:center;gap:12px;min-width:0}
+#crm-preview.ds-projects .compact-top{justify-content:space-between}
+#crm-preview.ds-projects .compact-controls button,#crm-preview.ds-projects .compact-controls input:not([type=checkbox]),#crm-preview.ds-projects .compact-controls select{height:36px;font-size:13px;margin:0}
+#crm-preview.ds-projects .compact-controls .queue-tabs,#crm-preview.ds-projects .compact-controls .stage-tabs{margin:0;gap:6px;flex-wrap:nowrap}
+#crm-preview.ds-projects .compact-controls .stage-tabs{overflow-x:auto;padding:2px 0;min-height:40px}
+#crm-preview.ds-projects .compact-controls .stage-tabs button{flex-shrink:0;white-space:nowrap}
+#crm-preview.ds-projects .compact-search>input{flex:1;min-width:160px;max-width:360px}
+#crm-preview.ds-projects .compact-search>select{width:220px;min-width:0;text-overflow:ellipsis}
+#crm-preview.ds-projects .compact-result{margin-left:auto;white-space:nowrap;color:var(--dim);font-size:13px}
+#crm-preview.ds-projects .compact-extra{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:12px;background:var(--paper);border:1px solid var(--line);border-radius:8px}
+#crm-preview.ds-projects .compact-extra label,#crm-preview.ds-projects .compact-settings label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--dim);min-width:0}
+#crm-preview.ds-projects .compact-settings{position:absolute;z-index:4;top:52px;right:0;width:300px;max-width:100%;padding:16px;background:var(--paper);border:1px solid var(--line);border-radius:8px;box-shadow:0 8px 30px #172a4a22;display:grid;gap:12px;max-height:65vh;overflow:auto}
+#crm-preview.ds-projects .compact-settings .inline-check{flex-direction:row;align-items:center}
+#crm-preview.ds-projects .compact-saved{display:grid;gap:8px;min-width:0}
+#crm-preview.ds-projects .compact-saved button{height:auto;min-height:36px;white-space:normal;overflow-wrap:anywhere;text-align:left}
+#crm-preview.ds-projects .compact-view>[data-view-settings]{max-width:240px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#crm-preview.ds-projects .filter-chips{display:flex;flex-wrap:wrap;gap:8px}
+#crm-preview.ds-projects .filter-chips button{height:auto;min-height:28px;background:#edf2ff;color:var(--brand);white-space:normal;text-align:left}
+@media(max-width:900px){#crm-preview.ds-projects .compact-top{flex-wrap:wrap}#crm-preview.ds-projects .compact-view{margin-left:auto}#crm-preview.ds-projects .compact-search{flex-wrap:wrap}}
+@media(max-width:600px){#crm-preview.ds-projects .compact-controls .queue-tabs{width:100%;display:flex}#crm-preview.ds-projects .compact-controls .queue-tabs button{padding:0 8px;flex:1;font-size:12px}#crm-preview.ds-projects .compact-view{margin-left:0;flex-wrap:wrap}#crm-preview.ds-projects .compact-search>input{flex-basis:100%;max-width:none}#crm-preview.ds-projects .compact-search>select{flex:1;width:140px}#crm-preview.ds-projects .compact-extra{grid-template-columns:1fr}#crm-preview.ds-projects .compact-settings{top:96px}#crm-preview.ds-projects .compact-result{margin-left:0}}
+
+/* V3 shared overlay and standard-density lists. */
+#crm-preview.ds-projects .orders tbody tr{height:60px}
+#crm-preview.ds-projects .orders thead tr{height:44px}
+#crm-preview.ds-projects .orders td{font-size:14px}
+#crm-preview.ds-projects .orders tr:focus-within{background:#eff6ff}
+@media(max-width:700px){}
+
+/* Whole-row drawer entry, while nested links and actions keep their behavior. */
+#crm-preview.ds-projects .orders tr[data-detail-row]{cursor:pointer}
+#crm-preview.ds-projects .orders tr[data-detail-row]:hover{background:#f0f5ff}
+#crm-preview.ds-projects .orders tr[data-detail-row]:focus-visible{outline:2px solid var(--brand);outline-offset:-2px;background:#eff6ff}
+
+/* Explicit heading scale prevents inherited browser or legacy heading sizes. */
+#crm-preview.ds-projects h1{font:var(--type-page)}
+#crm-preview.ds-projects h2{font:var(--type-drawer-title)}
+#crm-preview.ds-projects h3{font:var(--type-section)}

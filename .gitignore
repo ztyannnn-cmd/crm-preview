@@ -1,0 +1,44 @@
+# Machine-local files, dependencies, credentials and archives.
+.DS_Store
+.env
+.env.*
+!.env.example
+!.env.*.example
+node_modules/
+__pycache__/
+*.py[cod]
+*.pem
+*.key
+*.p12
+*.zip
+*.tar
+*.tar.gz
+backups/
+private/
+
+# Local browser captures and visual QA; not reviewed for public distribution.
+/qa/
+/qa-*.png
+/docs/**/feishu-sync.json
+/docs/spec-kit-integration-status.json
+/docs/workflow-mindmaps/*.png
+/docs/workflow-mindmaps/*.svg
+/docs/workflow-mindmaps/*.drawio
+/docs/workflow-mindmaps/*.mm
+/docs/workflow-mindmaps/*.opml
+/docs/workflow-mindmaps/*-state.txt
+/docs/workflow-mindmaps/qa-*.txt
+/docs/workflow-mindmaps/pm-live-before-update.json
+/docs/workflow-mindmaps/workflows-before-flow.json
+/docs/workflow-mindmaps/*audit*.json
+
+# Raw local verification output and machine-specific source snapshots.
+/specs/**/verification/**/*.json
+/specs/**/verification/**/*.log
+/specs/**/checks/
+/specs/**/source-review.json
+
+# Internal infrastructure inventories remain local in this public repository.
+/specs/**/deployment-compatibility.md
+/specs/**/evidence.md
+/specs/**/verification/environment-gates.md

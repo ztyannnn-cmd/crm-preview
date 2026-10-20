@@ -1,0 +1,570 @@
+/* Shared drawer layout. Own sizing and scroll rules here, not in page styles. */
+#crm-preview.ds-projects .detail-drawer{
+ position:fixed;inset:0 0 0 auto;z-index:1000;
+ width:560px;min-width:min(360px,100vw);max-width:min(720px,100vw);
+ height:100dvh;min-height:0;padding:0;display:flex;flex-direction:column;
+ overflow:hidden;resize:horizontal;background:var(--paper);
+ border-left:1px solid var(--line);box-shadow:-12px 0 48px #1f293725;
+}
+#crm-preview.ds-projects .drawer-head{
+ position:relative;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+ gap:16px;padding:16px 24px;min-height:64px;border-bottom:1px solid var(--line);background:var(--paper);
+}
+#crm-preview.ds-projects .drawer-head strong{font:var(--type-drawer-title);min-width:0;overflow-wrap:anywhere}
+#crm-preview.ds-projects .drawer-head button{flex:none}
+#crm-preview.ds-projects .profile-main{
+ flex:1 1 0;min-height:0;min-width:0;display:flex;flex-direction:column;
+ gap:20px;padding:24px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;
+ scrollbar-gutter:stable;overflow-wrap:anywhere;
+}
+/* Children retain their natural heights inside the only scrolling region. */
+#crm-preview.ds-projects .profile-main>*{flex:0 0 auto;min-width:0;margin-block:0}
+#crm-preview.ds-projects .detail-drawer h2{font:var(--type-drawer-title)}
+#crm-preview.ds-projects .detail-drawer h3{font:var(--type-section)}
+#crm-preview.ds-projects .detail-drawer :is(p,dd,input,textarea,select,button){font-size:14px;line-height:1.6}
+#crm-preview.ds-projects .detail-drawer :is(small,dt,.status){font-size:12px;line-height:1.5}
+#crm-preview.ds-projects .detail-tabs{display:flex;flex-wrap:wrap;gap:8px;margin:0;padding:0 0 8px;border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .detail-tabs button{height:auto;min-height:36px;padding:6px 12px;white-space:normal}
+#crm-preview.ds-projects .progress-track{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0;overflow:visible}
+#crm-preview.ds-projects .progress-track li{flex:0 0 auto;padding:6px 10px;border-radius:16px;background:#f1f5f9;font-size:12px;line-height:20px;color:var(--dim);white-space:normal}
+#crm-preview.ds-projects .progress-track li[aria-current]{background:var(--brand);color:white}
+#crm-preview.ds-projects .operation-panel{display:grid;gap:16px;padding:16px;background:#f8faff;border:1px solid #dbe5ff;border-radius:12px;margin:0;scroll-margin-top:16px}
+#crm-preview.ds-projects .detail-drawer .coop-summary{padding:16px;gap:8px}
+#crm-preview.ds-projects #dialog-message:empty{display:none}
+@media(max-width:700px){
+ #crm-preview.ds-projects .detail-drawer{width:100vw;max-width:100vw;resize:none}
+ #crm-preview.ds-projects .drawer-head{padding:16px}
+ #crm-preview.ds-projects .profile-main{padding:16px;gap:16px}
+}
+
+#crm-preview.ds-projects .drawer-backdrop{position:fixed;inset:0;z-index:999;width:100%;height:100dvh;padding:0;border:0;border-radius:0;background:#15243a35;cursor:default}
+#crm-preview.ds-projects .drawer-backdrop:hover{background:#15243a35}
+#crm-preview.ds-projects .detail-drawer{width:min(640px,100vw);max-width:100vw;resize:none}
+#crm-preview.ds-projects .detail-drawer.is-wide{width:min(920px,100vw)}
+#crm-preview.ds-projects .drawer-head-actions{display:flex;align-items:center;gap:8px;flex:none}
+#crm-preview.ds-projects .drawer-head-actions button{height:32px;padding:0 10px;font-size:12px}
+#crm-preview.ds-projects .drawer-peer-actions{display:flex;align-items:center;gap:8px}
+#crm-preview.ds-projects .drawer-peer-actions button{display:grid;place-items:center;width:32px;height:32px;min-height:32px;padding:0}
+#crm-preview.ds-projects .drawer-peer-actions button:disabled{opacity:.4;cursor:default}
+#crm-preview.ds-projects .drawer-peer-actions svg{display:block;pointer-events:none}
+#crm-preview.ds-projects .detail-drawer>.detail-tabs{flex:none;padding:12px 24px;margin:0;gap:8px;background:var(--paper)}
+#crm-preview.ds-projects .detail-tabs [aria-pressed=true]{background:#edf2ff;color:var(--brand);border-color:#cbd8ff}
+#crm-preview.ds-projects .detail-drawer>#dialog-message:not(:empty){flex:none;margin:8px 24px;padding:10px 12px;max-height:100px;overflow:auto}
+#crm-preview.ds-projects .detail-drawer .profile-main{background:#f8fafc}
+#crm-preview.ds-projects .detail-drawer .creator-section,#crm-preview.ds-projects .detail-drawer .coop-summary,#crm-preview.ds-projects .detail-drawer .creator-overview{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:20px}
+#crm-preview.ds-projects .detail-drawer .creator-section{display:grid;gap:16px}
+#crm-preview.ds-projects .detail-drawer .creator-facts{background:transparent;padding:0;gap:16px 24px}
+#crm-preview.ds-projects .detail-drawer .creator-facts dd{margin:0;color:var(--ink);line-height:1.7}
+#crm-preview.ds-projects .detail-drawer .creator-facts dt{color:var(--dim)}
+#crm-preview.ds-projects .detail-drawer .account-profile:last-child{border-bottom:0;padding-bottom:0}
+#crm-preview.ds-projects .detail-drawer .account-profile small{margin-top:4px}
+#crm-preview.ds-projects .detail-drawer .operation-panel{border-left:3px solid var(--brand);background:var(--paper)}
+@media(max-width:700px){
+ #crm-preview.ds-projects .drawer-head-actions [data-drawer-width]{display:none}
+ #crm-preview.ds-projects .detail-drawer>.detail-tabs{padding:10px 16px;flex-wrap:nowrap;overflow-x:auto}
+ #crm-preview.ds-projects .detail-drawer>.detail-tabs button{flex:none}
+ #crm-preview.ds-projects .detail-drawer .creator-section,#crm-preview.ds-projects .detail-drawer .coop-summary,#crm-preview.ds-projects .detail-drawer .creator-overview{padding:16px}
+ #crm-preview.ds-projects .detail-drawer>#dialog-message:not(:empty){margin:8px 16px}
+}
+@media(max-width:420px){#crm-preview.ds-projects .detail-drawer .creator-facts{grid-template-columns:1fr}}
+
+/* Single-creator intake stays centered above the creator list. */
+#crm-preview.ds-projects .detail-drawer.creator-modal{
+ inset:50% auto auto 50%;transform:translate(-50%,-50%);width:min(680px,calc(100vw - 32px));
+ min-width:0;max-width:calc(100vw - 32px);height:auto;max-height:calc(100dvh - 48px);
+ border:1px solid var(--line);border-radius:16px;box-shadow:0 24px 80px #15243a30;
+}
+#crm-preview.ds-projects .creator-modal .profile-main{flex:0 1 auto;scrollbar-gutter:auto}
+#crm-preview.ds-projects .creator-modal .actions{justify-content:flex-end;gap:12px}
+#crm-preview.ds-projects .creator-modal form>.actions{position:sticky;bottom:-24px;background:var(--paper);padding:16px 0;margin-top:24px;border-top:1px solid var(--line)}
+#crm-preview.ds-projects .detail-drawer.creator-saved-modal{width:min(480px,calc(100vw - 32px))}
+#crm-preview.ds-projects .creator-saved-content{text-align:center;padding:8px 0 16px}
+#crm-preview.ds-projects .creator-saved-content p{margin:12px 0 0}
+#crm-preview.ds-projects .creator-saved-icon{display:inline-flex;align-items:center;justify-content:center;width:48px;height:48px;border-radius:50%;background:#e9f8ef;color:#15803d;font-size:26px;margin-bottom:16px}
+@media(max-width:700px){#crm-preview.ds-projects .creator-modal form>.actions{bottom:-16px}#crm-preview.ds-projects .creator-modal .grid{grid-template-columns:1fr}}
+
+#crm-preview.ds-projects .creator-profile-footer{justify-content:flex-end}
+
+#crm-preview.ds-projects .creator-profile-drawer .profile-main{gap:16px}
+#crm-preview.ds-projects .compact-identity{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+#crm-preview.ds-projects .compact-identity h2{font-size:20px;margin:0}
+#crm-preview.ds-projects .compact-identity small{color:var(--dim)}
+#crm-preview.ds-projects .detail-drawer .compact-section{padding:16px;gap:12px}
+#crm-preview.ds-projects .compact-section h3{margin:0}
+#crm-preview.ds-projects .compact-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px 16px}
+#crm-preview.ds-projects .compact-facts .full{grid-column:1/-1}
+#crm-preview.ds-projects .compact-facts dd{overflow-wrap:anywhere;white-space:pre-wrap}
+#crm-preview.ds-projects .compact-account{padding:12px 0;border-top:1px solid var(--line)}
+#crm-preview.ds-projects .compact-account p{margin:8px 0 4px}
+#crm-preview.ds-projects .compact-account p span{margin-left:24px}
+#crm-preview.ds-projects .compact-account small{color:var(--dim)}
+#crm-preview.ds-projects .compact-section .actions{display:flex;justify-content:flex-end;gap:8px}
+@media(max-width:480px){#crm-preview.ds-projects .compact-facts{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* Shared form rule: dropdown chevron right inset 8px; reserve 32px for text. */
+#crm-preview{--select-arrow-inset:8px}
+#crm-preview select{appearance:none;-webkit-appearance:none;padding-right:32px!important;background-image:linear-gradient(45deg,transparent 50%,currentColor 50%),linear-gradient(135deg,currentColor 50%,transparent 50%)!important;background-position:calc(100% - 13px) 50%,calc(100% - var(--select-arrow-inset)) 50%!important;background-size:5px 5px!important;background-repeat:no-repeat!important}
+#crm-preview input[type=number]{appearance:textfield;-moz-appearance:textfield}
+#crm-preview input[type=number]::-webkit-inner-spin-button,#crm-preview input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+#crm-preview.ds-projects .intake-platform{padding:16px;border:1px solid var(--line);border-radius:10px;background:var(--paper);margin-top:12px}
+#crm-preview.ds-projects .intake-platform h3{margin:0}
+#crm-preview.ds-projects .intake-platform .grid{margin-top:12px;gap:12px}
+#crm-preview.ds-projects .intake-account+.intake-account{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}
+#crm-preview.ds-projects .intake-platforms{min-width:0}
+#crm-preview.ds-projects .intake-platforms .section-heading{flex-wrap:wrap;gap:8px}
+
+/* Successful saves share a non-blocking five-second notice above all dialogs. */
+#crm-preview #crm-save-toast{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:10000;max-width:calc(100vw - 32px);width:max-content;box-sizing:border-box;padding:12px 20px;border:1px solid #b7dfc5;border-radius:8px;background:#f0fdf4;color:#166534;box-shadow:0 6px 24px #0000001a;font-size:14px;line-height:1.5;pointer-events:none}
+#crm-preview #crm-save-toast[hidden]{display:none}
+
+#crm-preview.ds-projects .compact-identity{align-items:flex-start;justify-content:space-between;gap:12px 20px}
+#crm-preview .compact-name{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;min-width:0;flex:1}
+#crm-preview .compact-name h2{overflow-wrap:anywhere}
+#crm-preview .compact-name small{white-space:nowrap;font-variant-numeric:tabular-nums}
+#crm-preview .compact-people{display:grid;gap:4px;margin:0;max-width:45%;font-size:13px}
+#crm-preview .compact-people>div{display:flex;gap:8px;align-items:baseline}
+#crm-preview .compact-people dt{color:var(--dim);white-space:nowrap}
+#crm-preview .compact-people dd{margin:0;overflow-wrap:anywhere}
+#crm-preview.ds-projects .detail-drawer .compact-basic{border:0;border-radius:0;background:transparent;box-shadow:none;padding:0;gap:10px}
+#crm-preview.ds-projects .detail-drawer .compact-basic .compact-facts{gap:8px 20px}
+#crm-preview.ds-projects .detail-drawer .compact-basic .compact-facts>div{display:flex;align-items:baseline;gap:8px}
+#crm-preview .compact-basic .compact-facts dt{flex-shrink:0}
+@media(max-width:600px){#crm-preview .compact-people{max-width:100%;width:100%}}
+
+/* Proposal basics stay together in the compact drawer header. */
+#crm-preview.ds-projects .proposal-drawer .drawer-head{align-items:flex-start;padding:16px 20px;gap:12px}
+#crm-preview .proposal-header{min-width:0;flex:1;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px}
+#crm-preview .proposal-header-title{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:32px;grid-column:1;grid-row:1}
+#crm-preview.ds-projects .proposal-header-title>strong{font-size:18px;line-height:1.4}
+#crm-preview .proposal-header-title .status{padding:2px 8px;white-space:nowrap}
+#crm-preview .proposal-header-meta,#crm-preview .proposal-header-people{display:flex;flex-wrap:wrap;gap:3px 12px;color:var(--dim);font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+#crm-preview .proposal-header-meta{grid-column:1/-1;grid-row:2}
+#crm-preview .proposal-header-email{min-width:0;flex:1 1 160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#crm-preview .proposal-header-people{grid-column:2;grid-row:1;align-self:start;align-items:center;min-height:32px;white-space:nowrap}
+#crm-preview .proposal-header-meta a{color:inherit;text-decoration:none}
+#crm-preview .proposal-header-meta a:hover{text-decoration:underline;color:var(--brand)}
+#crm-preview.ds-projects .proposal-drawer>.detail-tabs{padding:8px 20px;gap:16px}
+#crm-preview.ds-projects .proposal-drawer>.detail-tabs button{border:0;border-radius:0;background:transparent;padding:5px 0;min-height:30px;font-size:13px}
+#crm-preview.ds-projects .proposal-drawer>.detail-tabs button[aria-pressed=true]{box-shadow:0 2px var(--brand)}
+#crm-preview.ds-projects .proposal-drawer .profile-main{padding:16px 20px;gap:14px}
+@media(max-width:480px){#crm-preview.ds-projects .proposal-drawer .drawer-head{padding:12px 16px}#crm-preview.ds-projects .proposal-drawer .profile-main{padding:16px}#crm-preview .proposal-header{grid-template-columns:minmax(0,1fr)}#crm-preview .proposal-header-people{grid-column:1;grid-row:3;min-height:0}}
+
+#crm-preview.ds-projects .proposal-drawer .package-summary{position:relative;padding:14px 16px;gap:8px;border-radius:8px}
+#crm-preview .package-heading{display:flex;align-items:center;gap:12px;min-height:28px;padding-right:36px}
+#crm-preview.ds-projects .package-heading h3{margin:0;font-size:14px}
+#crm-preview .package-heading h3 small{margin-left:6px;color:var(--dim);font-weight:400}
+#crm-preview.ds-projects .package-summary p{margin:0;font-size:13px;line-height:1.6}
+#crm-preview .package-summary .cooperation-notes{color:var(--dim);white-space:pre-wrap;overflow-wrap:anywhere}
+#crm-preview .package-summary>details{border-top:1px solid var(--line);padding-top:8px;margin-top:4px}
+#crm-preview.ds-projects .package-summary>.proposal-editor:not([open]){position:absolute;top:12px;right:14px;border:0;padding:0;margin:0}
+#crm-preview.ds-projects .proposal-edit-toggle{display:grid;place-items:center;width:28px;height:28px;min-height:28px;padding:0;list-style:none;border:1px solid transparent;border-radius:6px;color:var(--dim)}
+#crm-preview .proposal-edit-toggle::-webkit-details-marker{display:none}
+#crm-preview .proposal-edit-toggle svg{display:block;pointer-events:none}
+#crm-preview .proposal-edit-toggle:hover{background:#f1f5f9;color:var(--brand)}
+#crm-preview .proposal-editor[open]>.proposal-edit-toggle{position:absolute;top:12px;right:14px;color:var(--brand);background:#edf2ff}
+#crm-preview .proposal-editor form>.actions{margin-top:12px}
+#crm-preview.ds-projects .proposal-history>summary{padding:2px 0;font-size:12px;font-weight:500;color:var(--dim)}
+
+#crm-preview.ds-projects .proposal-drawer .quote-panel{padding:16px;gap:12px}
+#crm-preview .quote-panel h3{margin:0}
+#crm-preview .quote-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#crm-preview .quote-round-count{font-size:12px;color:var(--dim);white-space:nowrap}
+#crm-preview.ds-projects .quote-progress{margin:0;font-size:12px;color:var(--dim);line-height:1.6}
+#crm-preview.ds-projects .quote-waiting{margin:0;padding:10px 12px;border:1px solid #f0dfb6;border-radius:8px;background:#fffaf0;color:#976318;font-size:13px;line-height:1.6}
+#crm-preview .quote-timeline{display:grid;gap:8px}
+#crm-preview .quote-entry{display:flex;align-items:flex-start;gap:12px;padding:12px;border:1px solid var(--line);border-radius:10px;background:#fafafa}
+#crm-preview .quote-entry.quote-reply{border-color:#dbe7ff;background:#f7faff}
+#crm-preview .quote-badge{flex-shrink:0;padding:2px 7px;border-radius:4px;background:#e9eaec;color:#555;font-size:12px;font-weight:600}
+#crm-preview .quote-reply .quote-badge{background:#e0ebff;color:#315abd}
+#crm-preview .quote-entry-body{min-width:0;flex:1}
+#crm-preview.ds-projects .quote-entry p{margin:0;font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}
+#crm-preview .quote-entry small{display:block;margin-top:4px;color:var(--dim)}
+#crm-preview .quote-entry p span{color:var(--dim)}
+#crm-preview .quote-composer{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:8px;align-items:end}
+#crm-preview .quote-composer label{display:grid;gap:4px;min-width:0;font-size:12px;color:var(--dim)}
+#crm-preview .quote-composer input{width:100%;min-width:0;box-sizing:border-box}
+#crm-preview.ds-projects .proposal-drawer .quote-composer :is(input,button){height:36px;min-height:36px;margin:0;padding:6px 10px;font-size:13px}
+#crm-preview .quote-decisions{display:grid;grid-template-columns:minmax(0,1fr);align-items:start;gap:8px;border-top:1px solid var(--line);padding-top:8px}
+#crm-preview.ds-projects .quote-decisions>details{border:0;padding:0;margin:0;min-width:0}
+#crm-preview.ds-projects .quote-decisions>details>summary{padding:4px 0;font-size:13px;font-weight:500}
+#crm-preview.ds-projects .quote-decisions>.alternate-actions>summary{color:var(--dim)}
+#crm-preview.ds-projects .quote-decisions>.alternate-actions{margin-left:0;width:100%}
+#crm-preview .quote-decisions>:not(details){width:100%;box-sizing:border-box}
+#crm-preview .quote-response>summary{color:var(--brand);cursor:pointer}
+#crm-preview .quote-response .quote-composer{margin-top:10px}
+#crm-preview.ds-projects .proposal-drawer .quote-feedback{justify-self:start;font-size:13px;min-height:32px;padding:5px 10px}
+#crm-preview.ds-projects .quote-limit{margin:0;padding:10px 12px;background:#fffbeb;color:#986723;border:1px solid #f6e29a;border-radius:8px;font-size:13px}
+@media(max-width:480px){#crm-preview .quote-composer{grid-template-columns:minmax(0,1fr) auto}#crm-preview .quote-composer label:first-child{grid-column:1/-1}}
+
+#crm-preview.ds-projects .proposal-drawer .submission-decision{padding:14px 16px;gap:10px}
+#crm-preview .submission-decision h3,#crm-preview .submission-decision p{margin:0}
+#crm-preview .submission-decision textarea{min-height:64px}
+#crm-preview .submission-decision .actions{margin-top:10px}
+#crm-preview.ds-projects .submission-decision form[data-kind="reject"] button.primary{background:#fff5f5;border-color:#f1c6c6;color:#b43b3b}
+
+/* Stack review choices below the proposal. */
+#crm-preview .proposal-review-options{display:grid;grid-template-columns:minmax(0,1fr);gap:10px;align-items:start}
+#crm-preview.ds-projects .proposal-review-options>.creator-section{padding:12px;gap:8px;border-radius:8px;min-width:0;align-content:start;margin:0}
+#crm-preview.ds-projects .proposal-review-options h3{font-size:14px;margin:0}
+#crm-preview .quote-timeline:empty{display:none}
+#crm-preview .proposal-review-options .quote-composer{grid-template-columns:minmax(0,1fr) auto;gap:8px}
+#crm-preview .proposal-review-options .quote-composer label:first-child{grid-column:1/-1}
+#crm-preview.ds-projects .proposal-review-options :is(input,textarea,button){font-size:13px;line-height:1.5}
+#crm-preview.ds-projects .proposal-review-options input{height:34px;padding:6px 8px}
+#crm-preview.ds-projects .proposal-review-options button{min-height:34px;height:34px;padding:6px 10px;white-space:nowrap}
+#crm-preview .proposal-review-options label{font-size:12px;gap:4px}
+#crm-preview .proposal-review-options .grid{gap:8px}
+#crm-preview .proposal-review-options textarea{min-height:61px;height:61px;padding:6px 8px;box-sizing:border-box}
+#crm-preview .proposal-review-options .actions{margin-top:8px}
+#crm-preview .proposal-review-options .quote-entry{padding:8px;gap:8px}
+@media(max-width:540px){#crm-preview .proposal-review-options{grid-template-columns:minmax(0,1fr)}}
+
+#crm-preview .quote-entry.quote-customer{background:#fffaf0;border-color:#f0dfb6}
+#crm-preview .quote-customer .quote-badge{background:#fff0cb;color:#976318}
+
+#crm-preview .quote-entry .quote-time{margin:0;flex-shrink:0;white-space:nowrap;line-height:21px;font-variant-numeric:tabular-nums}
+
+#crm-preview .customer-acceptance{border-top:1px solid var(--line);padding-top:12px}
+#crm-preview .customer-acceptance summary{color:var(--brand);cursor:pointer;font-weight:600;font-size:14px}
+#crm-preview .customer-acceptance form{margin-top:10px}
+#crm-preview .customer-accepted{padding:12px;border:1px solid #cde6d4;border-radius:8px;background:#f3faf5}
+#crm-preview .customer-accepted p{margin:6px 0 0}
+
+#crm-preview .customer-accepted{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:16px;align-items:center}
+#crm-preview .customer-accepted>strong{grid-column:1;grid-row:1}
+#crm-preview .customer-accepted>p{grid-column:1}
+#crm-preview .customer-accepted .creator-confirmation{display:contents}
+#crm-preview.ds-projects .customer-accepted :is([data-show-creator-confirmation],[data-action="confirmAndCreateOrder"]){grid-column:2;grid-row:1;justify-self:end;width:auto;height:28px;min-height:28px;padding:0 6px;font-size:12px;line-height:18px;white-space:nowrap;border-radius:4px}
+#crm-preview .customer-accepted .creator-confirmation-form{grid-column:1 / -1;margin-top:10px}
+
+#crm-preview .proposal-finance{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding-top:10px;margin-top:4px;border-top:1px solid var(--line)}
+#crm-preview .proposal-finance>div{display:flex;flex-direction:column;gap:5px;min-width:0}
+#crm-preview .proposal-finance span{font-size:12px;line-height:18px;color:var(--dim)}
+#crm-preview .proposal-finance strong{font-size:14px;line-height:20px;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+#crm-preview .proposal-finance .negative-margin{color:#b42318}
+
+/* Approved compact drawer identity; extended creator data lives in the body. */
+#crm-preview.ds-projects .drawer-creator-facts>summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--dim)}
+#crm-preview.ds-projects .drawer-creator-facts[open]>div{display:grid;gap:12px;margin-top:12px}
+#crm-preview.ds-projects .drawer-account-facts{display:grid;grid-template-columns:80px minmax(0,1fr);gap:4px 12px;padding-top:12px;border-top:1px solid var(--line)}
+#crm-preview.ds-projects .drawer-account-facts small{grid-column:2;color:var(--dim)}
+#crm-preview.ds-projects .delivery-record-summary{gap:8px}
+
+/* Proposal body starts with expanded platform basics, followed by cooperation terms. */
+#crm-preview.ds-projects .proposal-drawer .proposal-account-basics{padding:14px 16px;gap:12px;border-radius:8px}
+#crm-preview.ds-projects .proposal-account-basics h3{font-size:14px;margin:0}
+#crm-preview.ds-projects .proposal-accounts-scroll{max-width:100%;overflow-x:auto}
+#crm-preview.ds-projects .proposal-accounts-table{width:100%;border-collapse:collapse;table-layout:fixed;font-size:12px;text-align:left}
+#crm-preview.ds-projects .proposal-accounts-table :is(th,td){padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle;overflow-wrap:anywhere}
+#crm-preview.ds-projects .proposal-accounts-table th{font-weight:500;color:var(--dim);background:var(--page-bg)}
+#crm-preview.ds-projects .proposal-accounts-table th:nth-child(1){width:20%}
+#crm-preview.ds-projects .proposal-accounts-table th:nth-child(2){width:44%}
+#crm-preview.ds-projects .proposal-accounts-table th:nth-child(3),#crm-preview.ds-projects .proposal-accounts-table th:nth-child(4){width:18%}
+#crm-preview.ds-projects .proposal-accounts-table tr:last-child td{border-bottom:0}
+#crm-preview.ds-projects .proposal-account-identity{display:inline-flex;align-items:center;gap:5px;max-width:100%;vertical-align:middle}
+#crm-preview.ds-projects .proposal-account-identity>span{min-width:0;overflow-wrap:anywhere}
+#crm-preview.ds-projects .proposal-accounts-table .proposal-account-link{display:inline-flex;align-items:center;justify-content:center;flex:0 0 24px;width:24px;height:24px;border-radius:4px;color:var(--brand);text-decoration:none}
+#crm-preview.ds-projects .proposal-account-link:hover{background:var(--page-bg)}
+#crm-preview.ds-projects .proposal-account-link:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+#crm-preview.ds-projects .proposal-cooperation-table{width:100%;min-width:320px;border-collapse:collapse;font-size:13px;text-align:left}
+#crm-preview.ds-projects .proposal-cooperation-table :is(th,td){padding:10px 8px;border-bottom:1px solid var(--line);overflow-wrap:anywhere}
+#crm-preview.ds-projects .proposal-cooperation-table th{background:var(--page-bg);color:var(--dim);font-size:12px;font-weight:500}
+#crm-preview.ds-projects .proposal-cooperation-table tr:last-child td{border-bottom:0}
+#crm-preview.ds-projects .proposal-terms-facts{display:grid;gap:10px;margin:4px 0}
+#crm-preview.ds-projects .proposal-terms-facts>div{display:grid;grid-template-columns:72px minmax(0,1fr);gap:12px}
+#crm-preview.ds-projects .proposal-terms-facts dt{color:var(--dim);font-size:12px}
+#crm-preview.ds-projects .proposal-terms-facts dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px}
+#crm-preview .cooperation-summary-items{display:grid;gap:6px;list-style:none;margin:0;padding:0}
+#crm-preview .cooperation-summary-items li{display:flex;align-items:center;flex-wrap:wrap;gap:6px 12px;font-size:14px;line-height:24px}
+#crm-preview .cooperation-summary-items li>span+span::before,#crm-preview .cooperation-summary-items li>strong::before{content:'·';margin-right:12px;color:var(--dim);font-weight:400}
+#crm-preview .cooperation-summary-items strong{font-size:inherit;font-weight:500}
+
+/* Delivery drawer: one information section followed by stage-specific work. */
+#crm-preview.ds-projects .detail-drawer .delivery-basic-info{position:relative;padding:14px 18px;gap:10px}
+#crm-preview.ds-projects .delivery-basic-info h3,#crm-preview.ds-projects .delivery-section-title{margin:0;font:var(--type-section)}
+#crm-preview.ds-projects .delivery-basic-grid{display:grid;grid-template-columns:1fr 0.8fr 1.5fr;gap:8px 16px;margin:0}
+#crm-preview.ds-projects .delivery-basic-grid dt{color:var(--dim);font:var(--type-secondary);margin-bottom:2px}
+#crm-preview.ds-projects .delivery-basic-grid dd{margin:0;font:var(--type-body);overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-basic-info .drawer-creator-facts{border:0;padding:0;margin:0;background:transparent}
+#crm-preview.ds-projects .delivery-interactions{display:grid;gap:12px}
+
+#crm-preview.ds-projects .delivery-stage-block{padding:22px 0;border-top:1px solid var(--line);background:var(--paper)}
+#crm-preview.ds-projects .delivery-stage-heading{display:flex;align-items:center;gap:10px}
+#crm-preview.ds-projects .delivery-stage-heading h4{font:var(--type-section);margin:0}
+#crm-preview.ds-projects .delivery-stage-number{display:grid;place-items:center;flex:none;width:22px;height:22px;border:1px solid var(--line);border-radius:6px;font-size:12px;color:var(--dim)}
+#crm-preview.ds-projects .is-current .delivery-stage-number{border-color:var(--brand);color:var(--brand);background:#f0f4ff}
+#crm-preview.ds-projects .delivery-stage-state{margin-left:auto;font:var(--type-secondary);color:var(--dim)}
+#crm-preview.ds-projects .is-current .delivery-stage-state{color:var(--brand)}
+#crm-preview.ds-projects .delivery-stage-hint{margin:6px 0 16px 32px;font:var(--type-secondary);color:var(--dim)}
+#crm-preview.ds-projects .delivery-stage-body{display:grid;gap:14px}
+#crm-preview.ds-projects .delivery-stage-body>.creator-section{padding:0;border:0;border-radius:0;background:transparent;margin:0}
+#crm-preview.ds-projects .delivery-stage-actions{display:grid;gap:12px}
+#crm-preview.ds-projects .delivery-stage-actions form{margin:0}
+#crm-preview.ds-projects .delivery-stage-actions .grid{grid-template-columns:1fr}
+#crm-preview.ds-projects .delivery-stage-actions .actions{justify-content:flex-start}
+#crm-preview.ds-projects .delivery-draft-card{background:#fafbfc;border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;gap:10px}
+#crm-preview.ds-projects .delivery-draft-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:var(--type-body)}
+#crm-preview.ds-projects .delivery-draft-top time{margin-left:auto;font:var(--type-secondary);color:var(--dim)}
+#crm-preview.ds-projects .delivery-draft-top a{font:var(--type-secondary);color:var(--brand);text-decoration:none}
+#crm-preview.ds-projects .delivery-draft-status{padding:2px 6px;font:var(--type-secondary);border:1px solid #cbd9ff;border-radius:4px;background:#eff4ff;color:#3366cc}
+#crm-preview.ds-projects .delivery-draft-status.is-returned{color:#b5473c;background:#fff4f2;border-color:#ffd4cf}
+#crm-preview.ds-projects .delivery-draft-status.is-approved{color:#27835a;background:#eff9f3;border-color:#bfe4ce}
+#crm-preview.ds-projects .delivery-draft-description{font:var(--type-body);margin:0;color:var(--dim);white-space:pre-wrap;overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-review-note{padding:10px 12px;border:1px solid #f1dfb2;border-radius:6px;background:#fffbef;color:#88652b;font:var(--type-label);white-space:pre-wrap;overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-review-note.is-returned,#crm-preview.ds-projects .delivery-resubmit-note{background:#fff5f4;border:1px solid #f7ceca;color:#b5473c}
+#crm-preview.ds-projects .delivery-resubmit-note{padding:10px 12px;margin:0;border-radius:6px;font:var(--type-label)}
+#crm-preview.ds-projects .delivery-review-history>summary,#crm-preview.ds-projects .delivery-older-versions>summary{cursor:pointer;color:var(--dim);font:var(--type-secondary)}
+#crm-preview.ds-projects .delivery-older-versions{margin-top:12px}
+#crm-preview.ds-projects .delivery-older-versions .delivery-draft-card{margin-top:10px}
+#crm-preview.ds-projects .delivery-check-row{display:grid;grid-template-columns:18px 125px minmax(0,1fr);gap:10px;align-items:start;font:var(--type-body);padding:6px 0}
+#crm-preview.ds-projects .delivery-check-row>span:nth-child(2){color:var(--dim)}
+#crm-preview.ds-projects .delivery-check-row strong{font-weight:500;overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-check{width:15px;height:15px;margin-top:3px;border:1.5px solid #d0d5dd;border-radius:50%;font-size:10px;display:grid;place-items:center;line-height:1}
+#crm-preview.ds-projects .delivery-check.is-done{color:#299c80;border-color:#299c80}
+#crm-preview.ds-projects .delivery-preparation>details{margin-top:14px}
+#crm-preview.ds-projects .delivery-publication{font:var(--type-body);overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-interactions{background:var(--paper);padding:18px;border:1px solid var(--line);border-radius:10px;gap:0}
+#crm-preview.ds-projects .delivery-section-title{margin-bottom:16px}
+#crm-preview.ds-projects .delivery-stage-block:last-child{padding-bottom:0}
+@media(max-width:480px){#crm-preview.ds-projects .delivery-basic-grid{grid-template-columns:1fr}#crm-preview.ds-projects .delivery-check-row{grid-template-columns:18px 100px minmax(0,1fr)}#crm-preview.ds-projects .delivery-interactions{padding:14px}}
+
+/* Progressive delivery: finished summaries remain, future steps are not rendered. */
+#crm-preview.ds-projects .delivery-completed-summary{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font:var(--type-body);margin-top:12px;overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-completed-summary strong{font-weight:500}
+#crm-preview.ds-projects .delivery-complete-mark{color:#27835a;font:var(--type-secondary)}
+#crm-preview.ds-projects .delivery-completed-summary a{color:var(--brand);font:var(--type-secondary);text-decoration:none}
+#crm-preview.ds-projects .delivery-stage-block.is-completed{padding:16px 0}
+#crm-preview.ds-projects .delivery-stage-block.is-completed .delivery-stage-number{color:#27835a;border-color:#bfe4ce}
+#crm-preview.ds-projects .delivery-completed-history{margin-top:10px;font:var(--type-label)}
+#crm-preview.ds-projects .delivery-completed-history>summary,#crm-preview.ds-projects .delivery-optional-preparation>summary{cursor:pointer;color:var(--dim);font:var(--type-label)}
+#crm-preview.ds-projects .delivery-completed-history[open]>:not(summary){margin-top:12px}
+#crm-preview.ds-projects .delivery-optional-preparation[open]>.grid{margin-top:12px}
+#crm-preview.ds-projects .delivery-preparation>form>.grid{grid-template-columns:1fr}
+#crm-preview.ds-projects .delivery-preparation>form>.actions{justify-content:flex-start}
+
+/* Workflow drawers lead with context, then one clear task and its local controls. */
+#crm-preview.ds-projects .workflow-todo{display:flex;align-items:flex-start;gap:12px;padding:14px 16px;border:1px solid #cbd9ff;border-left:3px solid var(--brand);border-radius:8px;background:#f1f5ff;color:#294d9e}
+#crm-preview .workflow-todo-icon{flex:none;font-size:20px;line-height:24px}
+#crm-preview .workflow-todo>div{min-width:0;display:grid;gap:6px}
+#crm-preview .workflow-todo-heading{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;font-size:14px;line-height:1.6}
+#crm-preview .workflow-todo-heading strong{white-space:nowrap}
+#crm-preview.ds-projects .workflow-todo p{margin:0;font-size:13px;line-height:1.6}
+#crm-preview .workflow-todo small{opacity:.85}
+#crm-preview.ds-projects .workflow-todo.is-waiting,#crm-preview.ds-projects .workflow-todo.is-ended{background:#f5f6f8;color:#667085;border-color:#dfe3e9}
+#crm-preview.ds-projects .workflow-todo.is-returned{background:#fff5f4;color:#b5473c;border-color:#f5cbc5}
+#crm-preview.ds-projects .workflow-todo.is-complete{background:#f0f9f3;color:#27835a;border-color:#bfe4ce}
+
+#crm-preview.ds-projects .submission-decision button.primary{background:var(--brand);border-color:var(--brand);color:white}
+#crm-preview.ds-projects .proposal-drawer .submission-decision{grid-template-columns:minmax(0,1fr) auto;align-items:start}
+#crm-preview .submission-decision #rejection-reason{grid-column:1/-1}
+#crm-preview.ds-projects .proposal-drawer .submission-decision:has(h3){grid-template-columns:1fr}
+#crm-preview.ds-projects .detail-drawer .delivery-cooperation{padding:14px 16px;gap:10px;border-radius:8px}
+#crm-preview .delivery-cooperation h3{margin:0}
+#crm-preview .delivery-cooperation h3 small{color:var(--dim);font-weight:400;margin-left:6px}
+#crm-preview .delivery-identity-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:0}
+#crm-preview .delivery-identity-grid dt{color:var(--dim)}
+#crm-preview .delivery-identity-grid dd{margin:2px 0 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+
+#crm-preview .quote-current-round{display:grid;gap:8px}
+#crm-preview .quote-current-round h4{margin:0;color:var(--dim);font-size:12px;font-weight:500}
+#crm-preview .quote-history>summary{cursor:pointer;color:var(--dim);font-size:12px;font-weight:500}
+#crm-preview .quote-history[open]>.quote-timeline{margin-top:12px}
+#crm-preview .quote-local-action{padding-top:12px;border-top:0}
+#crm-preview .quote-entry-body small{font-variant-numeric:tabular-nums}
+#crm-preview .delivery-draft-author{color:var(--dim);font-variant-numeric:tabular-nums}
+#crm-preview .delivery-review-note p{margin:6px 0;white-space:pre-wrap}
+#crm-preview .delivery-review-note small{color:inherit;opacity:.8;font-variant-numeric:tabular-nums}
+#crm-preview .delivery-review-note.is-approved{color:#27835a;background:#eff9f3;border-color:#bfe4ce}
+#crm-preview .delivery-stage-actions{padding-top:14px;border-top:1px solid var(--line)}
+#crm-preview .delivery-stage-actions h5{margin:0;font-size:13px;font-weight:600}
+#crm-preview .delivery-draft-card>.delivery-review-history{padding-top:10px;border-top:1px solid var(--line)}
+@media(max-width:540px){#crm-preview .quote-composer{grid-template-columns:minmax(0,1fr) auto}#crm-preview .quote-composer label:first-child{grid-column:1/-1}}
+@media(max-width:420px){#crm-preview.ds-projects .proposal-drawer .submission-decision{grid-template-columns:1fr}#crm-preview .submission-decision>button{width:100%}#crm-preview .quote-composer{grid-template-columns:1fr}#crm-preview .quote-composer button{justify-self:start}}
+@media(max-width:480px){
+ #crm-preview.ds-projects .proposal-accounts-table :is(th,td){white-space:normal;padding:8px 6px}
+ #crm-preview.ds-projects .proposal-accounts-table th:nth-child(1){width:25%}
+ #crm-preview.ds-projects .proposal-accounts-table th:nth-child(2){width:39%}
+ #crm-preview.ds-projects .proposal-account-identity{display:flex;width:100%;gap:4px}
+ #crm-preview.ds-projects .proposal-account-identity>span{flex:1;white-space:normal;word-break:break-word}
+ #crm-preview .quote-entry{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px}
+ #crm-preview .quote-entry-body{grid-column:1/-1;grid-row:2}
+ #crm-preview .quote-entry .quote-time{grid-column:2;grid-row:1;justify-self:end}
+ #crm-preview.ds-projects .proposal-cooperation-table{min-width:0;table-layout:fixed;font-size:12px}
+ #crm-preview.ds-projects .proposal-cooperation-table :is(th,td){padding:8px 6px}
+ #crm-preview.ds-projects .proposal-cooperation-table th:nth-child(1){width:40%}
+ #crm-preview.ds-projects .proposal-cooperation-table th:nth-child(2){width:40%}
+ #crm-preview.ds-projects .proposal-cooperation-table th:nth-child(3){width:20%}
+}
+
+/* Compact creator basic facts and an inline pencil edit action. */
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic>.section-heading{justify-content:flex-start;gap:8px;min-height:28px}
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic{gap:8px}
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic .compact-facts{display:flex;flex-wrap:wrap;justify-content:flex-start;gap:6px 24px}
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic .compact-facts>div{gap:6px;min-width:0}
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic .compact-facts>.full{flex-basis:100%}
+#crm-preview.ds-projects .creator-profile-drawer .creator-basic-edit-icon{display:inline-flex;align-items:center;justify-content:center;flex:none;width:28px;height:28px;min-height:28px;padding:4px;border:0;background:transparent;box-shadow:none;color:var(--dim);border-radius:4px}
+#crm-preview.ds-projects .creator-profile-drawer .creator-basic-edit-icon:hover{color:var(--brand);background:#edf2ff}
+#crm-preview .creator-basic-edit-icon:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+/* Confirmed fine-line separation between creator basics and platform accounts. */
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic + .compact-section{border:0;border-top:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none;padding:18px 0 0;gap:12px}
+#crm-preview.ds-projects .creator-profile-drawer .compact-basic + .compact-section>.section-heading + .compact-account{border-top:0;padding-top:0}
+
+/* Proposal and single-video drawers share hierarchy without sharing business state. */
+#crm-preview.ds-projects .workflow-drawer .profile-main{background:var(--paper);padding:18px 20px;gap:16px}
+#crm-preview.ds-projects .workflow-drawer .creator-section{padding:0;border:0;border-radius:0;background:transparent;box-shadow:none;gap:10px}
+#crm-preview.ds-projects .workflow-drawer :is(.proposal-account-basics,.package-summary,.delivery-cooperation){padding-bottom:16px;border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .workflow-drawer h3{margin:0;font-size:14px;line-height:22px}
+#crm-preview.ds-projects .workflow-drawer h3 small{margin-left:8px;font-weight:400;color:var(--dim)}
+#crm-preview .workflow-video-name{padding:2px 7px;border:1px solid var(--line);border-radius:5px;color:var(--dim);font-size:12px;white-space:nowrap}
+#crm-preview.ds-projects .workflow-drawer :is(.proposal-accounts-table,.proposal-cooperation-table) :is(th,td){padding:7px 5px}
+#crm-preview.ds-projects .workflow-drawer :is(.proposal-accounts-table,.proposal-cooperation-table) th{background:transparent}
+#crm-preview.ds-projects .workflow-drawer .proposal-terms-facts{gap:6px;margin:0}
+#crm-preview.ds-projects .workflow-drawer .proposal-finance{margin:2px 0 0;padding-top:12px}
+#crm-preview.ds-projects .workflow-drawer .proposal-finance strong{font-size:16px;line-height:24px}
+#crm-preview.ds-projects .workflow-drawer .workflow-order-number{margin:0;font-size:12px;color:var(--dim)}
+#crm-preview.ds-projects .workflow-drawer .workflow-todo{margin:0;padding:12px 14px;border-radius:8px}
+#crm-preview.ds-projects .workflow-drawer .submission-decision{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+#crm-preview.ds-projects .workflow-drawer .submission-decision :is(#rejection-reason,[data-operation-error]){flex-basis:100%}
+#crm-preview.ds-projects .workflow-drawer .quote-panel{padding:0;gap:12px}
+#crm-preview.ds-projects .workflow-drawer .quote-current-round{display:grid;gap:10px}
+#crm-preview.ds-projects .workflow-drawer .quote-current-round h4{margin:0;font-size:12px;color:var(--dim);font-weight:500}
+#crm-preview.ds-projects .workflow-drawer .quote-entry{padding:10px 12px;border-radius:8px;gap:10px}
+#crm-preview.ds-projects .workflow-drawer .quote-time{white-space:nowrap;margin:0;font-variant-numeric:tabular-nums}
+#crm-preview.ds-projects .workflow-drawer .quote-author{font-size:12px;color:var(--dim)}
+#crm-preview.ds-projects .workflow-drawer .quote-local-action{padding-top:2px}
+#crm-preview.ds-projects .workflow-drawer :is(.quote-history,.proposal-history,.drawer-creator-facts){padding-top:12px;border-top:1px solid var(--line)}
+#crm-preview.ds-projects .workflow-drawer :is(.quote-history,.proposal-history,.drawer-creator-facts)>summary{font-size:12px;color:var(--dim);cursor:pointer}
+#crm-preview.ds-projects .workflow-drawer .quote-history[open]>.quote-timeline{margin-top:12px}
+#crm-preview.ds-projects .workflow-drawer .quote-composer [data-form-error]{grid-column:1/-1}
+#crm-preview .workflow-form-error{margin:0;padding:10px 12px;background:#fff4f2;border:1px solid #ffd4cf;border-radius:6px;color:#b43b3b;font-size:13px;white-space:pre-wrap}
+#crm-preview.ds-projects .workflow-drawer form>[data-form-error]:not([hidden]){margin-bottom:12px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-block{padding:16px 0 0}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-block:first-child{border-top:0;padding-top:0}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-heading{gap:8px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-heading h4{font-size:14px;line-height:22px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-hint{margin:6px 0 10px 30px;font-size:12px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-body{gap:10px;margin-top:10px}
+#crm-preview.ds-projects .workflow-drawer .delivery-draft-card{padding:12px;border-radius:8px;gap:10px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-actions{gap:10px;padding-top:2px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-actions .actions{margin-top:12px;gap:8px}
+#crm-preview.ds-projects .workflow-drawer .delivery-preparation-summary>summary{cursor:pointer;color:var(--dim);font-size:12px;overflow-wrap:anywhere}
+#crm-preview.ds-projects .workflow-drawer .delivery-preparation-summary[open]>.delivery-preparation{margin-top:12px}
+#crm-preview.ds-projects .workflow-drawer .delivery-identity-grid{margin:0;gap:8px 16px}
+#crm-preview.ds-projects .workflow-drawer .drawer-creator-facts p{margin:0}
+@media(max-width:700px){
+ #crm-preview.ds-projects .workflow-drawer .profile-main{padding:16px;gap:16px}
+}
+@media(max-width:480px){
+ #crm-preview.ds-projects .workflow-drawer .quote-entry{flex-wrap:wrap;gap:6px 8px}
+ #crm-preview.ds-projects .workflow-drawer .quote-entry-body{flex-basis:calc(100% - 110px)}
+ #crm-preview.ds-projects .workflow-drawer .quote-time{flex-basis:100%;text-align:right}
+ #crm-preview.ds-projects .workflow-drawer .proposal-finance span{font-size:11px}
+ #crm-preview.ds-projects .workflow-drawer .proposal-finance strong{font-size:14px}
+}
+#crm-preview.ds-projects .workflow-drawer .delivery-interactions{padding:0;border:0;border-radius:0;gap:0}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-block.is-completed{padding:12px 0}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-block.is-completed:first-child{padding-top:0}
+#crm-preview.ds-projects .workflow-drawer .delivery-completed-summary{margin:0;font-size:12px;gap:8px}
+#crm-preview.ds-projects .workflow-drawer .delivery-completed-history{margin:0;font-size:12px}
+#crm-preview.ds-projects .workflow-drawer .is-completed .delivery-stage-body{margin-top:8px;gap:6px}
+
+/* Keep the proposal summary secondary to quotation and negotiation. */
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief{gap:8px;padding-bottom:12px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief .cooperation-summary-items{padding-right:36px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief .proposal-finance{display:flex;flex-wrap:wrap;gap:8px 24px;margin:0;padding:0;border:0}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief .proposal-finance>div{flex-direction:row;align-items:baseline;gap:8px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief .proposal-finance strong{font-size:14px;line-height:22px;font-weight:600}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief .proposal-terms-facts{font-size:12px;line-height:20px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief .proposal-terms-facts>div{grid-template-columns:64px minmax(0,1fr)}
+#crm-preview.ds-projects .workflow-drawer .cooperation-brief>.proposal-editor:not([open]),#crm-preview.ds-projects .workflow-drawer .cooperation-brief .proposal-editor[open]>.proposal-edit-toggle{top:0;right:0}
+#crm-preview.ds-projects .workflow-drawer .quote-status-line{margin:0;color:var(--dim);font-size:12px;line-height:20px;overflow-wrap:anywhere}
+
+/* Pending confirmation is a full-width form, not a completed-state grid. */
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation{display:flex;flex-direction:column;align-items:stretch;gap:10px;width:100%;padding:14px 0;background:var(--paper);border:0;border-radius:0}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation h4{margin:0;font-size:14px;line-height:22px;color:var(--ink)}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation p{margin:0;line-height:20px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation .confirmation-status{font-size:13px;color:var(--dim)}
+#crm-preview.ds-projects .workflow-drawer .confirmation-quote-details{min-width:0;padding:12px;background:var(--page-bg);border-radius:8px;overflow-wrap:anywhere}
+#crm-preview.ds-projects .workflow-drawer .confirmation-quote-details>strong{display:block;margin-bottom:6px;font-size:13px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation :is(.confirmation-scope,.confirmation-hint){font-size:12px;color:var(--dim);overflow-wrap:anywhere}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation .confirmation-hint{margin-top:4px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation .customer-acceptance{border:0;padding:0}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation .customer-acceptance[open]>.customer-confirmation-editor{margin-top:12px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation form{margin-top:14px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation form>.grid{grid-template-columns:minmax(0,1fr);gap:12px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation label{font-size:13px;color:var(--dim)}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation :is(input,textarea){font-size:14px;color:var(--ink);width:100%}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation textarea{min-height:64px;resize:vertical}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation .actions{margin-top:14px}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation>button{align-self:flex-end;width:auto}
+#crm-preview.ds-projects .workflow-drawer .customer-confirmation.is-complete{padding:14px;background:#f3faf5;border:1px solid #cde6d4;border-radius:8px}
+
+/* Review saves a quote draft; the explicit submit action starts the first round. */
+#crm-preview.ds-projects .workflow-drawer .submission-decision form[data-kind="approve"]{flex:1 0 100%;min-width:0}
+#crm-preview.ds-projects .workflow-drawer .submission-decision form[data-kind="approve"]>.grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:12px}
+#crm-preview.ds-projects .workflow-drawer .submission-decision>button[data-show-rejection]{margin-left:auto;font-size:13px}
+@media(max-width:540px){#crm-preview.ds-projects .workflow-drawer .submission-decision form[data-kind="approve"]>.grid{grid-template-columns:minmax(0,1fr)}}
+
+/* Delivery: compact context, current work first, completed steps on demand. */
+#crm-preview.ds-projects .workflow-drawer .delivery-compact-summary{padding:0 0 14px;border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .delivery-compact-summary>details>summary{display:flex;justify-content:space-between;align-items:center;gap:16px;list-style:none;cursor:pointer}
+#crm-preview.ds-projects .delivery-compact-summary>details>summary span{color:var(--accent,#3864ff);font-size:12px}
+#crm-preview.ds-projects .delivery-compact-summary>small{display:block;margin-top:6px;color:var(--dim)}
+#crm-preview.ds-projects .delivery-compact-summary details[open]>.creator-section{margin-top:14px}
+#crm-preview.ds-projects .delivery-brief{padding:0 0 12px;border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects :is(.delivery-brief,.delivery-finished)>summary{cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;list-style:none}
+#crm-preview.ds-projects :is(.delivery-brief,.delivery-finished)>summary .muted{margin-left:auto;font-size:12px}
+#crm-preview.ds-projects :is(.delivery-brief,.delivery-finished)[open]>form,#crm-preview.ds-projects .delivery-finished[open]>.delivery-preparation{margin-top:14px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-block.is-current{padding:6px 0 20px}
+#crm-preview.ds-projects .delivery-stage-block.is-current>h3{margin:0 0 14px;font-size:18px}
+#crm-preview.ds-projects .delivery-requirements{padding:10px 12px;margin:0 0 16px;border-radius:6px;background:var(--page-bg);font-size:13px;white-space:pre-wrap;overflow-wrap:anywhere}
+#crm-preview.ds-projects .delivery-requirements>span{color:var(--dim);margin-right:8px}
+#crm-preview.ds-projects .delivery-latest-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(180px,1fr);gap:20px;align-items:start}
+#crm-preview.ds-projects .delivery-latest-row small{display:block;color:var(--dim);margin-top:8px}
+#crm-preview.ds-projects .delivery-remarks>summary{cursor:pointer;color:var(--accent,#3864ff);font-size:13px}
+#crm-preview.ds-projects .delivery-remarks[open]{min-width:0}
+#crm-preview.ds-projects .delivery-remarks .review-entry{padding:8px 0}
+#crm-preview.ds-projects .delivery-latest>form{margin-top:16px}
+#crm-preview.ds-projects .delivery-latest>button{margin:14px 8px 0 0}
+#crm-preview.ds-projects .delivery-preparation form+form{padding-top:14px;margin-top:14px;border-top:1px solid var(--line)}
+@media(max-width:560px){#crm-preview.ds-projects .delivery-latest-row{grid-template-columns:1fr;gap:12px}}
+
+/* Keep the cancellation trigger anchored while one compact form expands below. */
+#crm-preview.ds-projects .quote-decisions>.cooperation-cancel>summary{width:fit-content;margin-left:auto;text-align:right;cursor:pointer}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel form{margin-top:10px;padding:12px;background:#f8fafc;border:1px solid var(--line);border-radius:8px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel form>.grid{grid-template-columns:minmax(0,1fr);gap:10px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel label{font-size:13px;color:var(--dim)}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel :is(select,textarea){width:100%;box-sizing:border-box;font-size:14px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel textarea{min-height:64px;resize:vertical}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel .actions{margin-top:10px}
+#crm-preview.ds-projects .workflow-drawer .cooperation-cancel button{color:#b43b3b;border-color:#e6c2c2}
+
+/* Match both customer response entry points to the counteroffer text size. */
+#crm-preview.ds-projects .quote-decisions :is(.quote-response,.customer-acceptance)>summary{font-size:13px}
+
+/* Delivery disclosures: one compact row, expanded only by the user. */
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-brief,.delivery-finished,.delivery-current-disclosure)>summary{display:flex;align-items:center;gap:8px;height:52px;min-height:52px;box-sizing:border-box;padding:12px 0;font-size:13px;font-weight:600;line-height:20px;color:#1f2937;cursor:pointer;list-style:none}
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-brief,.delivery-finished,.delivery-current-disclosure)>summary::-webkit-details-marker{display:none}
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-brief,.delivery-finished,.delivery-current-disclosure)>summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:4px}
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-brief,.delivery-finished,.delivery-current-disclosure)>summary .muted{margin-left:auto;font-size:12px;font-weight:400;text-align:right}
+#crm-preview.ds-projects .workflow-drawer .delivery-complete-mark{font:400 12px/18px Inter,system-ui,sans-serif;color:#27835a}
+#crm-preview.ds-projects .workflow-drawer summary>.delivery-complete-mark{width:12px;flex:0 0 12px;text-align:center}
+#crm-preview.ds-projects .workflow-drawer .delivery-row-icon{width:12px;height:18px;flex:0 0 12px;stroke:#3366ff;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+#crm-preview.ds-projects .workflow-drawer .delivery-row-chevron{width:12px;height:12px;stroke:var(--dim);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s;flex:0 0 12px}
+#crm-preview.ds-projects .workflow-drawer details[open]>summary>.delivery-row-chevron{transform:rotate(90deg)}
+#crm-preview.ds-projects .workflow-drawer .delivery-brief{padding:0;border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-block:is(.is-current,.is-completed){padding:0;border-top:0;border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .workflow-drawer .delivery-current-disclosure[open]{padding-bottom:16px}
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-finished,.delivery-brief)[open]{padding-bottom:16px}
+#crm-preview.ds-projects .workflow-drawer .delivery-stage-body form[data-kind$="Submit"]>.grid>label:has(input[name="url"]){grid-column:1/-1}
+
+/* Align all delivery rows; remove the parent gap between disclosure sections. */
+#crm-preview.ds-projects .workflow-drawer .profile-main:has(>.delivery-compact-summary){gap:0}
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-brief,.delivery-finished,.delivery-current-disclosure)>summary:hover{background:#f8fafc}
+#crm-preview.ds-projects .workflow-drawer :is(.delivery-brief,.delivery-finished,.delivery-current-disclosure)>summary .is-actionable{color:#3366ff}
+
+#crm-preview.ds-projects .workflow-drawer .delivery-link-editor{margin:12px 0;font-size:12px}
+#crm-preview.ds-projects .workflow-drawer .delivery-link-editor>summary{color:var(--brand);font-size:12px;font-weight:400;cursor:pointer}
+#crm-preview.ds-projects .workflow-drawer .delivery-latest>small{display:block;margin-top:10px}

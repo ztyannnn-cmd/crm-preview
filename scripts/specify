@@ -1,0 +1,11 @@
+#!/bin/sh
+# Project-local developer tool; not a CRM runtime dependency.
+set -eu
+CRM_SPEC_ROOT=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+CRM_SPEC_TOOL="$CRM_SPEC_ROOT/../.crm-devtools/bin/specify"
+if [ ! -x "$CRM_SPEC_TOOL" ]; then
+  echo 'Spec Kit CLI missing; see docs/spec-kit-setup.md' >&2
+  exit 127
+fi
+cd "$CRM_SPEC_ROOT"
+exec "$CRM_SPEC_TOOL" "$@"

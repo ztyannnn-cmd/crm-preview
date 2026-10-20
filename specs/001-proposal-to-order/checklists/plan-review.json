@@ -1,0 +1,30 @@
+{
+  "date": "2026-10-19",
+  "phase": 4,
+  "branch": "main",
+  "feature_directory": "/Users/yan/codex/solbridge工作流/crm-preview/specs/001-proposal-to-order",
+  "generated_files": [
+    "plan.md",
+    "research.md",
+    "data-model.md",
+    "contracts/api.md",
+    "quickstart.md",
+    "validation.md",
+    "checklists/plan-review.md"
+  ],
+  "business_files_checked": 31,
+  "business_files_changed": [],
+  "missing_files": [],
+  "unmapped_FR": [],
+  "broken_local_links": [],
+  "template_placeholders": false,
+  "tasks_exists": false,
+  "ready_for_task_breakdown": true,
+  "runtime_integration_verified": false,
+  "external_gates": [
+    "new Feishu app config and exact OAuth parameters",
+    "existing purchased Alibaba database product/version/test isolation",
+    "ECS/private network/HTTPS and budget/access",
+    "private backend Git/CI rights"
+  ]
+}
