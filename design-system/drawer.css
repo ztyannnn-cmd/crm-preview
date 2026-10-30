@@ -568,3 +568,73 @@
 #crm-preview.ds-projects .workflow-drawer .delivery-link-editor{margin:12px 0;font-size:12px}
 #crm-preview.ds-projects .workflow-drawer .delivery-link-editor>summary{color:var(--brand);font-size:12px;font-weight:400;cursor:pointer}
 #crm-preview.ds-projects .workflow-drawer .delivery-latest>small{display:block;margin-top:10px}
+
+/* Proposal details: compact facts followed by quotation records and actions. */
+#crm-preview .proposal-header.proposal-header-compact{display:block}
+#crm-preview .proposal-header-compact .proposal-header-dot{color:var(--dim)}
+#crm-preview.ds-projects .workflow-drawer .proposal-detail-basics{padding-bottom:16px;border-bottom:1px solid var(--line)}
+#crm-preview .proposal-info-lines{display:grid;gap:6px}
+#crm-preview.ds-projects .proposal-info-line{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 0;margin:0;font-size:14px;line-height:24px}
+#crm-preview .proposal-info-line>span{display:inline-flex;align-items:baseline;min-width:0;overflow-wrap:anywhere}
+#crm-preview .proposal-info-line>span+span::before{content:"·";padding:0 8px;color:var(--dim)}
+#crm-preview.ds-projects .proposal-info-line .proposal-account-identity{display:inline-flex;align-items:center;gap:4px;width:auto;min-width:0;overflow-wrap:anywhere}
+#crm-preview .proposal-info-line .proposal-account-link{display:inline-flex;align-items:center;flex:none;align-self:center;padding:2px;color:var(--brand);border-radius:4px}
+#crm-preview.ds-projects .proposal-more{margin:0;border:0;padding:0}
+#crm-preview.ds-projects .proposal-more>summary{font-size:12px;font-weight:400;color:var(--dim);cursor:pointer;padding:2px 0}
+#crm-preview .proposal-more-body{display:grid;gap:12px;padding-top:12px}
+#crm-preview.ds-projects .proposal-more-body .creator-facts{margin:0}
+#crm-preview.ds-projects .proposal-more-body :is(details,.proposal-history){padding:0;border:0;margin:0}
+#crm-preview.ds-projects .proposal-more-body summary{font-size:13px;cursor:pointer;color:var(--dim);font-weight:500}
+#crm-preview.ds-projects .proposal-more-body details[open]>summary{margin-bottom:10px}
+#crm-preview.ds-projects .proposal-more-body .proposal-editor>summary{position:static;width:auto;height:auto;background:transparent}
+#crm-preview.ds-projects .quote-panel .quote-entry{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:4px 12px;padding:10px 12px}
+#crm-preview .quote-entry-line{grid-column:1;grid-row:1;display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 6px;min-width:0;font-size:14px;line-height:22px}
+#crm-preview .quote-entry-line>strong{white-space:nowrap}
+#crm-preview .quote-content{color:var(--dim);overflow-wrap:anywhere}
+#crm-preview .quote-entry-line :is(.quote-record-round,.quote-draft-label){font-size:12px;color:var(--dim)}
+#crm-preview .quote-draft-label{padding:0 5px;border:1px dashed var(--line);border-radius:4px;background:white}
+#crm-preview .quote-entry.quote-draft{border-style:dashed}
+#crm-preview.ds-projects .quote-panel .quote-entry>.quote-time{grid-column:2;grid-row:1;justify-self:end;line-height:22px;font-size:12px}
+#crm-preview.ds-projects .quote-panel .quote-entry>.quote-author{grid-column:1;grid-row:2;margin:0;line-height:22px;overflow-wrap:anywhere}
+#crm-preview.ds-projects .quote-panel .quote-note{grid-column:2;grid-row:2;border:0;padding:0;margin:0;min-width:0;font-size:12px}
+#crm-preview.ds-projects .quote-panel .quote-note>summary{cursor:pointer;color:var(--dim);font-size:12px;font-weight:400;line-height:22px;padding:0}
+#crm-preview.ds-projects .quote-panel .quote-note[open]{grid-column:1/-1;grid-row:3}
+#crm-preview.ds-projects .quote-panel .quote-note p{padding-top:6px;font-size:13px;white-space:pre-wrap}
+#crm-preview.ds-projects .quote-panel .submission-decision{display:grid;grid-template-columns:minmax(0,1fr);padding:0;gap:8px;border:0}
+#crm-preview.ds-projects .quote-panel .submission-decision .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+#crm-preview.ds-projects .quote-panel .submission-decision .actions button{margin:0}
+#crm-preview.ds-projects .quote-panel .quote-composer{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px 12px}
+#crm-preview.ds-projects .quote-panel .quote-composer>button{grid-column:1/-1;justify-self:start}
+@media(max-width:480px){
+ #crm-preview.ds-projects .proposal-info-line{font-size:13px;line-height:22px}
+ #crm-preview .proposal-info-line>span+span::before{padding:0 6px}
+ #crm-preview.ds-projects .quote-panel .quote-entry{gap:4px 8px;padding:10px}
+ #crm-preview.ds-projects .quote-panel .quote-composer{grid-template-columns:minmax(0,1fr)}
+}
+
+/* Customer feedback stays inline until a counteroffer needs its amount field. */
+#crm-preview.ds-projects .customer-feedback{width:100%;min-width:0;margin:0}
+#crm-preview.ds-projects .customer-feedback-summary{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+#crm-preview.ds-projects .customer-feedback-price{flex:1 1 180px;min-width:0;font-size:14px;line-height:22px;color:var(--dim);overflow-wrap:anywhere}
+#crm-preview.ds-projects .customer-feedback-price strong{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+#crm-preview.ds-projects .customer-feedback-accept{display:contents;margin:0}
+#crm-preview.ds-projects .customer-feedback button{flex:0 0 auto;min-height:36px;height:auto;margin:0;padding:6px 10px;font-size:13px;line-height:22px;white-space:nowrap}
+#crm-preview.ds-projects .customer-feedback-accept>[data-form-error]{order:1;flex:1 0 100%;min-width:0;margin:0;overflow-wrap:anywhere}
+#crm-preview.ds-projects .customer-feedback-counter{display:grid;gap:10px;margin:0;min-width:0}
+#crm-preview.ds-projects .customer-feedback-counter>[data-form-error]{margin:0;min-width:0;overflow-wrap:anywhere}
+#crm-preview.ds-projects .customer-counter-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}
+#crm-preview.ds-projects .customer-counter-amount{display:flex;flex:1 1 240px;align-items:center;gap:8px;min-width:0;margin:0;font-size:14px;line-height:22px;color:var(--ink)}
+#crm-preview.ds-projects .customer-counter-amount>span{flex:none;white-space:nowrap}
+#crm-preview.ds-projects .customer-counter-amount>span+span{color:var(--dim)}
+#crm-preview.ds-projects .customer-counter-amount input{flex:1 1 120px;width:120px;min-width:0;height:36px;box-sizing:border-box;margin:0;padding:6px 10px;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums}
+#crm-preview.ds-projects .customer-feedback .customer-counter-note{min-width:0;margin:0;padding:0;border:0}
+#crm-preview.ds-projects .customer-counter-note>summary{width:fit-content;margin:0;padding:0;font-size:13px;font-weight:400;line-height:22px;color:var(--dim);cursor:pointer;list-style:none}
+#crm-preview.ds-projects .customer-counter-note>summary::-webkit-details-marker{display:none}
+#crm-preview.ds-projects .customer-counter-note>summary:focus-visible{outline:2px solid var(--brand);outline-offset:3px;border-radius:3px}
+#crm-preview.ds-projects .customer-counter-note label{display:block;margin:8px 0 0;font-size:13px;color:var(--dim)}
+#crm-preview.ds-projects .customer-counter-note textarea{display:block;box-sizing:border-box;width:100%;min-width:0;min-height:64px;margin:0;font-size:14px;resize:vertical}
+#crm-preview.ds-projects .customer-feedback [hidden]{display:none}
+@media(max-width:480px){
+ #crm-preview.ds-projects .customer-feedback-price{flex-basis:100%}
+ #crm-preview.ds-projects .customer-counter-amount{flex-basis:100%}
+}

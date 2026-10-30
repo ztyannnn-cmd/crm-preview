@@ -1,0 +1,107 @@
+/* Proposal controls stay scoped; proposal and delivery lists share the compact table layout. */
+#crm-preview.ds-projects .followup-page{display:flex;flex-direction:column;gap:var(--space-4);min-width:0}
+#crm-preview.ds-projects .followup-controls{gap:var(--space-3);padding:0 var(--space-6) var(--space-4);background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-panel)}
+#crm-preview.ds-projects .followup-controls-header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:var(--space-6);border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .followup-controls-header>.primary{white-space:nowrap}
+#crm-preview.ds-projects .followup-controls .followup-queues{gap:var(--space-6);flex-wrap:nowrap;overflow-x:auto;padding:0;min-height:56px;min-width:0}
+#crm-preview.ds-projects .followup-queues button{position:relative;flex:0 0 auto;height:56px;padding:0 2px;border:0;border-radius:0;background:transparent;color:var(--dim);font:var(--type-medium);white-space:nowrap}
+#crm-preview.ds-projects .followup-queues button b{display:inline-flex;align-items:center;justify-content:center;min-width:22px;padding:0 6px;margin-left:4px;border-radius:4px;background:var(--page-bg);font:var(--type-secondary)}
+#crm-preview.ds-projects .followup-queues button[aria-pressed=true]{color:var(--brand);background:transparent;box-shadow:inset 0 -2px var(--brand)}
+#crm-preview.ds-projects .followup-queues button[aria-pressed=true] b{background:#edf2ff;color:var(--brand)}
+#crm-preview.ds-projects .followup-shortcuts button{font:var(--type-secondary)}
+#crm-preview.ds-projects .followup-shortcuts button b{background:transparent;padding:0;min-width:14px}
+#crm-preview.ds-projects .followup-stage-row{display:flex;align-items:center;gap:var(--space-4);min-width:0}
+#crm-preview.ds-projects .followup-field-label{font:var(--type-secondary);color:var(--dim);white-space:nowrap;flex-shrink:0}
+#crm-preview.ds-projects .followup-controls .stage-tabs{gap:var(--space-2);min-height:34px;padding:0}
+#crm-preview.ds-projects .followup-controls .stage-tabs button{height:30px;padding:0 10px;border-color:transparent;border-radius:var(--radius-control);background:transparent;color:var(--dim);font:var(--type-secondary)}
+#crm-preview.ds-projects .followup-controls .stage-tabs button span{margin-left:5px}
+#crm-preview.ds-projects .followup-controls .stage-tabs button span.is-zero{opacity:.5}
+#crm-preview.ds-projects .followup-controls .stage-tabs button[aria-pressed=true]{background:#edf2ff;color:var(--brand);border-color:#dbe5ff}
+#crm-preview.ds-projects .followup-controls .stage-tabs button:hover{background:var(--page-bg);color:var(--ink)}
+#crm-preview.ds-projects .followup-search{gap:var(--space-3)}
+#crm-preview.ds-projects .followup-search-field{position:relative;flex:1;max-width:440px;min-width:180px;margin:0}
+#crm-preview.ds-projects .followup-search-field svg{position:absolute;width:16px;height:16px;left:12px;top:10px;fill:none;stroke:var(--dim);stroke-width:1.6;pointer-events:none}
+#crm-preview.ds-projects .followup-search-field input{width:100%;padding-left:36px}
+#crm-preview.ds-projects .followup-search>select{width:210px;max-width:100%}
+#crm-preview.ds-projects .followup-search .followup-clear{border-color:transparent;color:var(--dim);padding:0 6px}
+#crm-preview.ds-projects .followup-controls .compact-extra{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));background:var(--page-bg);border:0;padding:var(--space-4);margin:0}
+#crm-preview.ds-projects .followup-controls .filter-chips{align-items:center;gap:var(--space-2)}
+#crm-preview.ds-projects .followup-controls .filter-chips button{min-height:28px;height:auto;max-width:100%;overflow-wrap:anywhere;white-space:normal;text-align:left;padding:3px 8px;border-color:#dbe5ff;font:var(--type-secondary)}
+#crm-preview.ds-projects .followup-results{min-width:0;background:var(--paper);border:1px solid var(--line);border-radius:var(--radius-panel)}
+#crm-preview.ds-projects .followup-results-toolbar{display:flex;align-items:center;padding:12px var(--space-6);border-bottom:1px solid var(--line)}
+#crm-preview.ds-projects .followup-result-summary{font:var(--type-secondary);color:var(--dim)}
+#crm-preview.ds-projects .followup-result-summary strong{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+#crm-preview.ds-projects .followup-results .order-scroll{border:0;border-radius:0 0 var(--radius-panel) var(--radius-panel)}
+#crm-preview.ds-projects .followup-table:not(.has-prices){min-width:1256px;table-layout:fixed;width:100%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(1){width:16%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(2){width:16%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(3){width:9%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(4){width:8%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(5){width:18%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(6){width:13%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(7){width:10%}
+#crm-preview.ds-projects .followup-table:not(.has-prices) th:nth-child(8){width:10%}
+#crm-preview.ds-projects .followup-table.has-prices{min-width:1265px;table-layout:fixed}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(1){width:190px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(2){width:200px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(3){width:110px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(4){width:100px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(5){width:210px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(6){width:135px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(7){width:155px}
+#crm-preview.ds-projects .followup-table.has-prices th:nth-child(8){width:165px}
+#crm-preview.ds-projects .followup-table.has-prices td{min-width:0}
+#crm-preview.ds-projects .followup-table :is(th,td){padding:16px 14px;vertical-align:middle}
+#crm-preview.ds-projects .followup-table th{background:var(--page-bg);font:var(--type-secondary);height:44px;padding-top:12px;padding-bottom:12px}
+#crm-preview.ds-projects .followup-table td{height:88px;font:var(--type-body);white-space:normal}
+#crm-preview.ds-projects .followup-table td:first-child{max-width:none}
+#crm-preview.ds-projects .followup-table .creator-title{font:var(--type-medium);font-weight:600;height:auto;padding:0;display:block;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#crm-preview.ds-projects .followup-table .record-id{color:var(--dim);font-variant-numeric:tabular-nums;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#crm-preview.ds-projects .followup-table .status{margin-top:0;height:auto;min-height:24px;white-space:normal;padding:3px 7px;line-height:18px}
+#crm-preview.ds-projects .followup-table .followup-handler{font:var(--type-secondary);color:var(--dim)}
+#crm-preview.ds-projects .followup-table .followup-reason{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#crm-preview.ds-projects .followup-table .followup-action,#crm-preview.ds-projects .followup-table .followup-detail{display:inline-flex;align-items:center;justify-content:space-between;gap:6px;min-height:32px;height:auto;padding:6px 0;border:0;border-radius:4px;background:transparent;font:var(--type-secondary);text-align:left;white-space:normal}
+#crm-preview.ds-projects .followup-table .followup-action{color:var(--brand);font-weight:600}
+#crm-preview.ds-projects .followup-table .followup-detail{color:var(--dim)}
+#crm-preview.ds-projects .followup-table .followup-action:hover,#crm-preview.ds-projects .followup-table .followup-detail:hover{text-decoration:underline}
+#crm-preview.ds-projects .followup-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:var(--space-2);padding:32px 24px;min-height:236px}
+#crm-preview.ds-projects .followup-empty-icon{display:grid;place-items:center;background:var(--page-bg);color:var(--dim);width:44px;height:44px;border:1px solid var(--line);border-radius:var(--radius-control);margin-bottom:var(--space-1)}
+#crm-preview.ds-projects .followup-empty-icon svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+#crm-preview.ds-projects .followup-empty h2{font:var(--type-medium);font-weight:600}
+#crm-preview.ds-projects .followup-empty p{max-width:450px;color:var(--dim);font:var(--type-body)}
+#crm-preview.ds-projects .followup-empty-actions{margin-top:var(--space-1)}
+#crm-preview.ds-projects .followup-empty-link{height:auto;min-height:32px;padding:4px 8px;border:0;background:transparent;color:var(--brand);font:var(--type-secondary)}
+#crm-preview.ds-projects .followup-empty-link:hover{text-decoration:underline;background:transparent}
+#crm-preview.ds-projects .followup-demo{display:flex;align-items:center;justify-content:space-between;gap:var(--space-4);padding:12px 16px;border:1px solid #dbe5ff;background:#f0f5ff;border-radius:var(--radius-card);color:var(--dim);font:var(--type-secondary)}
+#crm-preview.ds-projects .followup-demo strong{color:var(--brand);margin-right:8px}
+#crm-preview.ds-projects .followup-demo a,#crm-preview.ds-projects .followup-review-link a{color:var(--brand);white-space:nowrap;text-decoration:none}
+#crm-preview.ds-projects .followup-review-link{color:var(--dim);font:var(--type-secondary);text-align:right}
+#crm-preview.ds-projects .followup-review-link a{margin-left:6px}
+#crm-preview.ds-projects .followup-sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+#crm-preview.ds-projects .followup-page :is(button,a,input,select,[tabindex]):focus-visible{outline:2px solid var(--brand);outline-offset:3px}
+@media(max-width:1100px){
+ #crm-preview.ds-projects .followup-controls-header{gap:16px}
+ #crm-preview.ds-projects .followup-controls .followup-queues{gap:14px}
+}
+@media(max-width:800px){
+ #crm-preview.ds-projects .followup-controls{padding:0 16px 16px}
+ #crm-preview.ds-projects .followup-controls-header{grid-template-columns:minmax(0,1fr) auto;column-gap:12px;row-gap:0;padding-bottom:8px}
+ #crm-preview.ds-projects .followup-controls-header>.primary{grid-column:2;grid-row:1}
+ #crm-preview.ds-projects .followup-controls .followup-shortcuts{grid-column:1/-1;grid-row:2;min-height:32px}
+ #crm-preview.ds-projects .followup-shortcuts button{height:32px}
+ #crm-preview.ds-projects .followup-stage-row{align-items:flex-start;flex-direction:column;gap:8px}
+ #crm-preview.ds-projects .followup-controls .stage-tabs{width:100%}
+ #crm-preview.ds-projects .followup-controls .followup-queues{gap:16px}
+ #crm-preview.ds-projects .followup-queues button{flex:none;font-size:13px;padding:0 2px}
+ #crm-preview.ds-projects .followup-search{flex-wrap:wrap}
+ #crm-preview.ds-projects .followup-search-field{flex-basis:100%;max-width:none}
+ #crm-preview.ds-projects .followup-search>select{flex:1;width:140px}
+ #crm-preview.ds-projects .followup-results-toolbar{padding:12px 16px}
+ #crm-preview.ds-projects .followup-demo{align-items:flex-start;flex-direction:column;gap:8px}
+ #crm-preview.ds-projects .followup-empty{padding:28px 20px;min-height:220px}
+}
+@media(max-width:480px){
+ #crm-preview.ds-projects .followup-controls-header{padding-top:12px}
+ #crm-preview.ds-projects .followup-controls-header>.followup-queues:not(.followup-shortcuts){grid-column:1/-1;grid-row:2}
+ #crm-preview.ds-projects .followup-controls-header>.followup-shortcuts{grid-row:3}
+}

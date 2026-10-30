@@ -568,3 +568,56 @@ test('assigned operator corrects accepted video quantities without reopening PM 
  const correction=f.r.quantityCorrections.at(-1);assert.equal(correction.before[0].quantity,2);assert.equal(correction.after[0].quantity,3);assert.equal(correction.by,op.id);assert.deepEqual(f.r.proposalVersions.at(-1).items[0].publicationPlatforms,correction.before[0].publicationPlatforms);
  const order=f.act(op,'confirmAndCreateOrder');assert.equal(f.db.deliveryItems.length,4);assert.equal(order.total,550);assert(!M.allowedActions(f.db,op,f.r).correctVideoQuantity);assert.throws(()=>f.act(op,'correctVideoQuantity',{quantities:[2,1],reason:'创建后不可补正'}));
 });
+
+
+test('manual price splitting is rejected for every actor and side without changing saved history',()=>{
+ const f=setup();confirm(f);
+ f.r.priceSplits={cost:{versionId:f.r.proposalVersions.at(-1).id,total:550,amounts:[50,100,400]}};
+ f.r.splitHistory=[{side:'cost',...structuredClone(f.r.priceSplits.cost)}];
+ const before=structuredClone(f.db);
+ for(const actor of [op,other,pm,M.USERS.find(u=>u.role==='admin')])for(const side of ['cost','clientPrice']){
+  assert.throws(()=>M.saveOrderSplit(f.db,actor,f.r.id,side,side==='cost'?[50,100,400]:[100,200,500]),/自动均分.*不支持手工拆分/);
+  assert.deepEqual(f.db,before);
+ }
+ f.act(op,'createOrder');const after=structuredClone(f.db);
+ assert.throws(()=>M.saveOrderSplit(f.db,op,f.r.id,'cost',[50,100,400]),/不支持手工拆分/);assert.deepEqual(f.db,after);
+});
+
+test('new orders ignore valid and stale manual splits and allocate both totals by video count across platforms',()=>{
+ for(const mode of ['valid','stale']){
+  const f=setup();confirm(f);const versionId=f.r.proposalVersions.at(-1).id;
+  f.r.priceSplits=mode==='valid'?{
+   cost:{versionId,total:550,amounts:[50,100,400]},clientPrice:{versionId,total:800,amounts:[100,200,500]}
+  }:{cost:{versionId:'older',total:1,amounts:[1]},clientPrice:{versionId,total:800,amounts:null}};
+  f.r.splitHistory=[{side:'cost',...structuredClone(f.r.priceSplits.cost)}];
+  const oldSplits=structuredClone(f.r.priceSplits),oldHistory=structuredClone(f.r.splitHistory);
+  const order=f.act(op,'createOrder'),items=f.db.deliveryItems.filter(item=>item.orderId===order.id);
+  assert.deepEqual(items.map(item=>item.platform),['Instagram','Instagram','YouTube']);
+  assert.deepEqual(items.map(item=>item.final),[183.34,183.33,183.33]);
+  assert.deepEqual(items.map(item=>item.clientPrice),[266.67,266.67,266.66]);
+  assert.equal(items.reduce((sum,item)=>sum+Math.round(item.final*100),0),55000);
+  assert.equal(items.reduce((sum,item)=>sum+Math.round(item.clientPrice*100),0),80000);
+  assert.deepEqual(f.r.priceSplits,oldSplits);assert.deepEqual(f.r.splitHistory,oldHistory);
+ }
+});
+
+test('repeated order creation and upgrade preserve historical unequal video prices',()=>{
+ const f=setup();confirm(f);const order=f.act(op,'createOrder'),items=f.db.deliveryItems.filter(item=>item.orderId===order.id);
+ const cost=[50,100,400],price=[100,200,500];
+ items.forEach((item,i)=>Object.assign(item,{initial:cost[i],final:cost[i],clientQuote:price[i],clientPrice:price[i]}));
+ f.r.priceSplits={cost:{versionId:order.versionId,total:550,amounts:cost},clientPrice:{versionId:order.versionId,total:800,amounts:price}};
+ const before=JSON.stringify({order,items,splits:f.r.priceSplits});
+ assert.equal(f.act(op,'createOrder'),order);assert.equal(f.act(op,'confirmAndCreateOrder'),order);
+ M.upgrade(f.db);
+ assert.equal(JSON.stringify({order,items,splits:f.r.priceSplits}),before);
+});
+
+test('explicit pricing corrections still allocate both revised totals evenly and preserve original business date',()=>{
+ const f=setup();confirm(f);const order=f.act(op,'createOrder'),admin=M.USERS.find(u=>u.role==='admin'),createdAt=order.createdAt;
+ const before=structuredClone(f.db);
+ assert.throws(()=>M.correctOrderPricing(f.db,admin,order.id,{cost:0,clientPrice:150.02,reason:'invalid total'}));assert.deepEqual(f.db,before);
+ M.correctOrderPricing(f.db,admin,order.id,{cost:100.01,clientPrice:150.02,reason:'correct totals'});
+ const items=f.db.deliveryItems.filter(item=>item.orderId===order.id);
+ assert.deepEqual(items.map(item=>item.final),[33.34,33.34,33.33]);assert.deepEqual(items.map(item=>item.clientPrice),[50.01,50.01,50]);
+ assert.equal(order.createdAt,createdAt);assert.equal(order.priceCorrections.length,1);assert.equal(order.priceCorrections[0].businessDate,createdAt);
+});

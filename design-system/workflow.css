@@ -128,8 +128,6 @@
  #crm-preview.ds-projects .delivery-workspace .compact-result{margin-left:0}
 }
 
-#crm-preview.ds-projects .delivery-list td:last-child{min-width:130px}
-#crm-preview.ds-projects .delivery-list td:nth-last-child(2){min-width:180px}
 
 /* Give project information more space and align the workflow columns farther right. */
 #crm-preview.ds-projects :is(.delivery-list,.proposal-list):not(.has-prices){table-layout:fixed;min-width:1120px}

@@ -79,6 +79,15 @@ export function projectReviewers(p){return [...new Set(p?.pmIds||[p?.pmId,...Obj
 export function validateSubmissionProfile(c){
  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(c?.contact||'').trim()))throw Error('请填写有效联系邮箱');
  for(const [key,label] of [['country','国家'],['language','语言'],['creatorType','达人类型']])if(!String(c?.[key]||'').trim())throw Error('请填写'+label);
+ const accounts=socialAccounts(c);if(!accounts.length)throw Error('请先添加达人平台账号');
+ for(const account of accounts){
+  const identity=[account.platform,account.handle].filter(Boolean).join(' ');
+  for(const [key,label] of [['followers','粉丝量'],['views','均播']]){
+   const value=account[key];
+   if(value==null||typeof value==='string'&&!value.trim())throw Error('请填写 '+identity+' 的'+label);
+   if(!Number.isFinite(value)||value<0)throw Error(identity+' 的'+label+'必须为非负数');
+  }
+ }
 }
 export const isSelfManagedPm=(db,u,r)=>Boolean(r&&u.role==='pm'&&r.selfManagedPmId===u.id&&r.ownerId===u.id&&reviewPm(db,r)===u.id);
 export const canOwnWork=(db,u,r)=>Boolean(r&&(u.role==='operator'&&r.ownerId===u.id||isSelfManagedPm(db,u,r)));
@@ -104,7 +113,7 @@ export function saveProposalDraft(db,u,creatorId,campaignId,fields){
 export function submitPackage(db,u,creatorId,input){
  const terms=packageTerms(input),draft=structuredClone(db),r=submitCreator(draft,u,creatorId,{...input,initial:terms.total});
  enablePackage(draft,u,r.id,terms);
- if(isSelfManagedPm(draft,u,r)&&input.clientQuote!==undefined&&input.clientQuote!==''){const amount=Number(input.clientQuote);positive(amount,'对客报价');r.clientQuoteDraft={amount,currency:terms.currency,versionId:r.proposalVersions.at(-1).id,note:String(input.quoteNote||''),by:u.id,at:r.submittedAt};}
+ if(isSelfManagedPm(draft,u,r))submitNegotiationQuote(draft,u,r.id,input.clientQuote,input.quoteNote);
  draft.proposalDrafts=(draft.proposalDrafts||[]).filter(d=>!(d.ownerId===u.id&&d.creatorId===creatorId&&d.campaignId===input.campaignId));
  Object.assign(db,draft);return r;
 }
@@ -443,7 +452,7 @@ export function updateCoop(db,u,id,action,data={}){
  }
  if(action==='editCustomerProposal'){const terms=packageTerms(data);if(cents(terms.total)!==cents(c.proposalVersions.at(-1).total))throw Error('审核 PM 不能修改达人侧报价');if(terms.currency!==c.currency)throw Error('编辑方案时请保留原币种');c.proposalVersions.push({id:crypto.randomUUID(),version:c.proposalVersions.at(-1).version+1,...terms,by:u.id,source:u.role,at,reason:'PM 更新合作方案'});c.initial=terms.total;c.rights=terms.rights;clearPackageAcceptance(c);if(c.status!=='待 PM 审核')c.status='待 PM 反馈';}
  if(['customerAccept','agree'].includes(action)){c.status='待达人确认';c.customerAcceptedAt=at;c.customerAcceptedBy=u.id;c.customerAcceptanceNote=reason;if(c.proposalVersions){const versionId=c.proposalVersions.at(-1).id;c.preliminaryVersionId=versionId;c.customerAcceptance={versionId,by:u.id,at,clientPrice:data.clientPrice,currency:c.proposalVersions.at(-1).currency,note:reason};c.clientVersionId=versionId;(c.proposalVersions.at(-1).confirmations??=[]).push({party:'client',by:u.id,at,clientPrice:data.clientPrice});completePackageAgreement(c,at);}}
- if(action==='reopenSubmission'){required(reason,'复审补充说明');const terms=packageTerms(data);c.proposalVersions=[...(c.proposalVersions||[]),{id:crypto.randomUUID(),version:(c.proposalVersions?.length||0)+1,...terms,by:u.id,source:u.role,at,reason:'不提报后重新提交'}];c.initial=terms.total;c.currency=terms.currency;c.rights=terms.rights;c.reason=String(data.reason||'');c.status='待 PM 审核';c.closedAt=null;c.closeReason='';c.resubmittedAt=at;c.rejectionAcknowledgedAt=null;clearPackageAcceptance(c);delete c.submissionApprovedAt;}
+ if(action==='reopenSubmission'){validateSubmissionProfile(db.creators.find(profile=>profile.id===r.creatorId));required(reason,'复审补充说明');const terms=packageTerms(data);c.proposalVersions=[...(c.proposalVersions||[]),{id:crypto.randomUUID(),version:(c.proposalVersions?.length||0)+1,...terms,by:u.id,source:u.role,at,reason:'不提报后重新提交'}];c.initial=terms.total;c.currency=terms.currency;c.rights=terms.rights;c.reason=String(data.reason||'');c.status='待 PM 审核';c.closedAt=null;c.closeReason='';c.resubmittedAt=at;c.rejectionAcknowledgedAt=null;clearPackageAcceptance(c);delete c.submissionApprovedAt;}
  if(action==='acknowledgeRejection'){c.rejectionAcknowledgedAt=at;c.closedAt=at;}
  if(action==='approve'){
   if(c.proposalVersions){const amount=Number(data.clientQuote);positive(amount,'对客报价');c.clientQuoteDraft={amount,currency:c.currency,versionId:c.proposalVersions.at(-1).id,note:String(data.quoteNote||'').trim(),by:u.id,at};}
@@ -494,7 +503,7 @@ export function deleteView(db,u,id){if(!savedViewsFor(db,u).some(v=>v.id===id))t
 
 
 // New Package entities are additive; legacy collaborations stay untouched.
-function packageTerms(data){
+export function packageTerms(data){
  const total=Number(data.total);positive(total,'Package 总价');
  const currency=String(data.currency||'CNY').toUpperCase();
  if(!['CNY','USD','EUR','GBP'].includes(currency))throw Error('请选择支持的币种');
@@ -582,7 +591,7 @@ export function createPackageOrder(db,u,id,data={}){
  const terms=packageTerms({...v,total:r.final}),pricing=orderPricing(terms,acceptance);
  const at=new Date().toISOString(),order={id:crypto.randomUUID(),proposalId:id,creatorId:r.creatorId,campaignId:r.campaignId,reviewPmId:reviewPm(db,r),...(r.selfManagedPmId?{selfManagedPmId:r.selfManagedPmId}:{}),targetCountry:r.targetCountry||'',ownerId:r.ownerId,versionId:v.id,terms:{...structuredClone(v),total:pricing.cost},total:pricing.cost,clientPrice:pricing.clientPrice,margin:pricing.margin,currency:pricing.currency,pricing,paymentTerms:String(data.paymentTerms||''),preparation:{},createdAt:at};
  let index=0;const items=terms.items.flatMap(spec=>Array.from({length:spec.quantity},()=>({id:crypto.randomUUID(),orderId:order.id,proposalId:id,creatorId:r.creatorId,campaignId:r.campaignId,reviewPmId:reviewPm(db,r),...(r.selfManagedPmId?{selfManagedPmId:r.selfManagedPmId}:{}),targetCountry:r.targetCountry||'',ownerId:r.ownerId,name:'Video '+(++index),publications:spec.publicationPlatforms.map(platform=>({id:crypto.randomUUID(),platform,url:'',status:'pending'})),platform:spec.platform,contentType:spec.type,status:'待填写客户 Brief',confirmedAt:at,submittedAt:at,updatedAt:at,date:r.date||'',history:[],events:[],notes:[],deliverables:{script:[],video:[]},rights:v.rights,url:'',distribution:''})));
- allocateItems(items,pricing);applyOrderSplits(r,items,pricing);
+ allocateItems(items,pricing);
  (db.orders??=[]).push(order);ensureOrderCodes(db);(db.deliveryItems??=[]).push(...items);ensureDeliveryCodes(db);r.orderId=order.id;r.status='已创建订单';r.updatedAt=at;(r.events??=[]).push({action:'createOrder',by:u.id,at,status:r.status});return order;
 }
 export function deliveryContext(db){return {...db,collaborations:[...db.collaborations.filter(r=>!r.proposalVersions&&isConfirmed(r)),...(db.deliveryItems||[])]};}
@@ -789,20 +798,9 @@ export function correctOrderPricing(db,u,orderId,{cost,clientPrice,reason}){
  (order.priceCorrections??=[]).push({by:u.id,at:new Date().toISOString(),reason:String(reason).trim(),before,after:{pricing:structuredClone(pricing),items:items.map(i=>({id:i.id,final:i.final,clientPrice:i.clientPrice}))},businessDate:order.createdAt});return order;
 }
 
+// Keep the exported entrypoint for older clients, but never accept manual prices.
 export function saveOrderSplit(db,u,id,side,amounts){
- const r=visibleCoops(db,u).find(r=>r.id===id),pm=u.role==='admin'||u.role==='pm'&&r&&reviewPm(db,r)===u.id,op=u.role==='admin'||canOwnWork(db,u,r);
- if(!r?.proposalVersions||r.orderId||!['cost','clientPrice'].includes(side)||!(side==='cost'?op:pm))throw Error('无权编辑此侧拆分或已经建单');
- const pricing=packagePricing(r),total=pricing[side];
- if(!Array.isArray(amounts)||amounts.length!==pricing.quantity||amounts.some(x=>cents(x)===null)||amounts.reduce((n,x)=>n+cents(x),0)!==cents(total))throw Error('子单合计必须等于整包'+(side==='cost'?'达人报价':'客户报价'));
- const at=new Date().toISOString(),split={versionId:r.proposalVersions.at(-1).id,total,amounts:amounts.map(moneyAmount),by:u.id,at};
- (r.splitHistory??=[]).push({side,...structuredClone(split)});(r.priceSplits??={})[side]=split;return r;
-}
-function applyOrderSplits(r,items,pricing){
- for(const side of ['cost','clientPrice']){
-  const split=r.priceSplits?.[side];if(!split)continue;
-  if(split.versionId!==r.proposalVersions.at(-1).id||split.amounts.length!==items.length||cents(split.total)!==cents(pricing[side])||split.amounts.reduce((n,x)=>n+cents(x),0)!==cents(pricing[side]))throw Error('报价或数量已变化，请重新核对两侧拆分');
-  items.forEach((item,i)=>Object.assign(item,side==='cost'?{initial:split.amounts[i],final:split.amounts[i]}:{clientQuote:split.amounts[i],clientPrice:split.amounts[i]}));
- }
+ throw Error('视频价格按合作总价和视频数量自动均分，不支持手工拆分');
 }
 
 export function pmHandoffResults(db,u){return db.campaigns.flatMap(p=>(p.assignmentHistory||[]).filter(h=>h.kind==='transfer'&&(u.role==='admin'||h.from===u.id||h.to===u.id)).map(h=>({projectId:p.id,from:h.from,to:h.to,by:h.by,at:h.at,reason:h.reason,ids:structuredClone(h.ids)})));}

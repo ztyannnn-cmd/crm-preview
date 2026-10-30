@@ -22,7 +22,8 @@ function harness(sessionStorage) {
   const storage={getItem:()=>stored,setItem:(_key,value)=>{if(fail)throw Error('QuotaExceededError');stored=value;}};
   let source=readFileSync(new URL('./app.mjs',import.meta.url),'utf8');
   source=source.replace(/^import .*;\n/gm,'').replace(/^document\.getElementById\('account'\).*\n/m,'');
-  const context=vm.createContext({...model,...components,console,crypto,URL,structuredClone,setTimeout:()=>1,clearTimeout:()=>{},localStorage:storage,sessionStorage,
+  const context=vm.createContext({...model,...components,console,crypto,URL,structuredClone,setTimeout:()=>1,clearTimeout:()=>{},businessStorage:storage,sessionStorage,isFollowupDemo:false,
+    viewStorage:{getItem:(...args)=>context.sessionStorage?.getItem?.(...args),setItem:(...args)=>context.sessionStorage?.setItem?.(...args)},
     document:{getElementById:id=>id==='crm-preview'?root:id==='crm-content'?{}:message},
     FormData:class{constructor(form){this.values=form.values;}get(key){return this.values[key]??null;}getAll(key){return this.values[key]||[];}}
   });
@@ -152,7 +153,7 @@ test('PM and operator drawers carry the simplified proposal flow through confirm
  const as=account=>{vm.runInContext('user=USERS.find(u=>u.id==='+JSON.stringify(account)+');',h.context);};
  const drawer=account=>{as(account);h.context.drawCoop(id);assert.doesNotMatch(body,/data-(?:kind|action)="(?:sent|returnSubmission|resubmit|finalConfirm)"/);return body;};
  assert.equal(current().status,'待 PM 审核');
- assert.match(drawer('pm1'),/data-kind="approve"/);assert.match(body,/审核通过并保存报价/);
+ assert.match(drawer('pm1'),/data-kind="approve"/);assert.match(body,/审核通过并保存报价草稿/);
  assert.doesNotMatch(drawer('a'),/data-kind="approve"|data-kind="negotiationQuote"|data-kind="creatorQuoteReply"/);
  as('pm1');h.submit('approve',{clientQuote:'1000'},id);assert.equal(current().status,'待 PM 反馈');
  assert.match(drawer('pm1'),/data-kind="negotiationQuote"/);assert.match(body,/<option value="decline">/);
@@ -172,7 +173,7 @@ test('PM and operator drawers carry the simplified proposal flow through confirm
  assert.match(drawer('a'),/data-action="confirmAndCreateOrder"/);assert.match(body,/>创建订单<\/button>/);
  assert.doesNotMatch(body,/data-kind="confirmAndCreateOrder"|data-kind="confirm"|data-show-creator-confirmation|type="date"|确认创建|>达人已确认合作<\/button>/);
  as('a');h.clickAction('confirmAndCreateOrder',id);assert.equal(model.proposalStageOf(current()),'已完成');assert(current().orderId);
- assert.equal(current().status,'已创建订单');assert.match(drawer('a'),/合作订单：/);
+ assert.equal(current().status,'已创建订单');assert.match(drawer('a'),/订单已创建 · /);
  assert.doesNotMatch(body,/data-order-deliveries=|前往视频交付/);
  assert.doesNotMatch(body,/data-action="confirmAndCreateOrder"|data-action="createOrder"/);
  assert.equal(h.stored().deliveryItems.filter(r=>r.proposalId===id).length,1);
@@ -193,6 +194,7 @@ test('package margin becomes two independent video prices through the order crea
  assert.doesNotMatch(h.context.packageHistory(current()),/data-action="createOrder"/);
  h.submit('customerAccept',{clientPrice:'900',reason:'Customer accepts both videos'},id);
  as('a');
+ assert.doesNotMatch(h.context.clientQuotePanel(current()),/编辑单视频|保存拆分|data-kind="orderSplit"/);
  assert.match(h.context.customerAcceptancePanel(current()),/data-action="confirmAndCreateOrder"/);
  as('b');assert.doesNotMatch(h.context.customerAcceptancePanel(current()),/data-action="confirmAndCreateOrder"/);
  as('a');
@@ -205,8 +207,8 @@ test('package margin becomes two independent video prices through the order crea
  assert.doesNotMatch(h.context.packageHistory(current()),/data-action="createOrder"/);
  h.context.orderId=current().orderId;
  const table=vm.runInContext("page='delivery';queue='all';deliveryOrderId=orderId;view='list';showPrices=true;renderDelivery();content.innerHTML",h.context);
- assert.match(table,/<th>合作价格<\/th><th>对客报价<\/th><th>Margin<\/th>/);
- assert.equal((table.match(/<td class="numeric">USD 50<\/td><td class="numeric">USD 450<\/td><td class="numeric">USD 400<\/td>/g)||[]).length,2);
+ assert.match(table,/<th(?: scope="col")?>达人最新报价<\/th><th(?: scope="col")?>客户最新报价<\/th>/);
+ assert.equal((table.match(/<td class="numeric">USD 50<\/td><td class="numeric">USD 450<\/td>/g)||[]).length,2);
  h.context.deliveryDetail(items[0].id);
  const detail=h.context.lastPanel.body;
  assert.match(detail,/aria-label="单条视频价格"/);
@@ -359,19 +361,287 @@ test('removed followup tab requests fall back to proposal content without render
  assert.doesNotMatch(rendered,/<dt>关闭原因<\/dt>/);
 });
 
-test('proposal rows omit next-step column for every account and keep row detail access',()=>{
+test('proposal drawer groups basics and quotation while retaining snapshot and editable terms in more details',()=>{
+ const h=harness(),db=h.context.readDB(),project=db.campaigns.find(p=>p.id===db.collaborations.find(r=>r.id===h.id).campaignId);
+ const pm=model.USERS.find(u=>u.id==='pm1'),operator=model.USERS.find(u=>u.id==='a');
+ project.pmId=pm.id;
+ const creator=db.creators[1];
+ Object.assign(creator,{contact:'snapshot@example.test',country:'美国',language:'英语',creatorType:'科技测评',accounts:[
+  {platform:'YouTube',handle:'@primary',url:'https://example.test/primary',followers:1000,views:500},
+  {platform:'TikTok',handle:'@secondary',url:'https://example.test/secondary',followers:2000,views:800}
+ ]});
+ const terms={campaignId:project.id,total:100,currency:'USD',rights:'30天授权',items:[{platform:'YouTube',type:'专属视频',quantity:1}]};
+ const r=model.submitPackage(db,operator,creator.id,terms);
+ model.updateCoop(db,pm,r.id,'approve',{clientQuote:150});
+ model.revisePackage(db,operator,r.id,{...terms,total:125,reason:'更新演示方案'});
+ db.creators.find(c=>c.id===creator.id).contact='current@example.test';
+ let body='',header='';h.context.panel=(_title,html,compact)=>{body=html;header=compact;};
+ vm.runInContext("page='followup';user=USERS.find(u=>u.id==='pm1');",h.context);
+ const before=JSON.stringify(db),stored=JSON.stringify(h.stored());
+ h.context.drawCoop(r.id);
+ const sections=[];let depth=0,start=0;
+ for(const match of body.matchAll(/<\/?section\b[^>]*>/g)){
+  if(match[0].startsWith('</')){if(--depth===0)sections.push(body.slice(start,match.index+match[0].length));}
+  else if(depth++===0)start=match.index;
+ }
+ assert.equal(sections.length,2);
+ const [basics,quotes]=sections;
+ assert.match(basics,/proposal-detail-basics/);assert.match(basics,/<h3>基础信息<\/h3>/);
+ for(const value of ['Persistence test','Tia','AJ','美国','英语','YouTube','TikTok','@primary','@secondary','粉丝','均播'])assert(basics.includes(value),value);
+ const moreStart=basics.indexOf('更多资料');assert(moreStart>=0);
+ const firstScreen=basics.slice(0,moreStart);
+ assert.doesNotMatch(firstScreen,/<table|<thead|达人名称|联系邮箱|达人类型|proposal-finance|cooperation-summary-items/);
+ assert.match(basics,/<details class="proposal-more" data-drawer-disclosure="proposal-more">/);
+ const more=basics.slice(moreStart);
+ for(const value of ['current@example.test','snapshot@example.test','提交时达人资料快照','审核历史','历史方案','编辑方案'])assert(more.includes(value),value);
+ assert.match(more,/data-kind="editCustomerProposal"/);
+ assert.match(quotes,/quote-panel/);assert.match(quotes,/<h3>报价和议价<\/h3>/);
+ assert(quotes.indexOf('>提报报价</span>')>=0);
+ assert(quotes.indexOf('>提报报价</span>')<quotes.indexOf('data-kind="approve"'));
+ assert.match(quotes,/USD 100/);assert.match(quotes,/审核通过并保存报价草稿/);assert.match(quotes,/确认不提报/);
+ assert.doesNotMatch(quotes,/proposal-finance|quote-round-count|对客报价 0 轮/);
+ assert.doesNotMatch(header,/proposal-header-meta|proposal-header-people/);
+ const deliveryHeader=h.context.workflowDrawerHeader({...r,name:'Video 1'},true);
+ assert.match(deliveryHeader,/Video 1/);assert.match(deliveryHeader,/proposal-header-meta/);assert.match(deliveryHeader,/proposal-header-people/);
+ assert.equal(JSON.stringify(db),before);assert.equal(JSON.stringify(h.stored()),stored);
+});
+
+test('proposal drawer keeps direct PM read only and self-managed PM exempt from review',()=>{
+ const h=harness(),db=h.context.readDB(),project=db.campaigns.find(p=>p.id===db.collaborations.find(r=>r.id===h.id).campaignId);
+ const pm=model.USERS.find(u=>u.id==='pm1'),operator=model.USERS.find(u=>u.id==='a');
+ project.pmId=pm.id;db.users=[{id:operator.id,directPmId:'pm2'}];
+ const terms={campaignId:project.id,total:100,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:1}]};
+ const assigned=model.submitPackage(db,operator,db.creators[1].id,terms);
+ let body='';h.context.panel=(_title,html)=>{body=html;};
+ vm.runInContext("page='followup';user=USERS.find(u=>u.id==='pm2');",h.context);
+ h.context.drawCoop(assigned.id);
+ assert.match(body,/proposal-detail-basics/);assert.match(body,/提交时达人资料快照/);
+ assert.doesNotMatch(body,/<form|data-show-rejection|编辑方案/);
+ const readonly=body;vm.runInContext("user=USERS.find(u=>u.id==='b');",h.context);
+ h.context.drawCoop(assigned.id);assert.equal(body,readonly);
+ const self=model.submitPackage(db,pm,db.creators[2].id,{...terms,clientQuote:150});
+ const before=JSON.stringify(db),stored=JSON.stringify(h.stored());
+ vm.runInContext("user=USERS.find(u=>u.id==='pm1');",h.context);
+ h.context.drawCoop(self.id);
+ assert.match(body,/quote-record-round">R1/);assert.match(body,/USD 150/);assert.match(body,/data-kind="customerOffer"/);
+ assert.doesNotMatch(body,/data-kind="negotiationQuote"|quote-draft-label/);
+ assert.doesNotMatch(body,/data-kind="(?:approve|reject)"|data-show-rejection/);
+ assert.equal(JSON.stringify(db),before);assert.equal(JSON.stringify(h.stored()),stored);
+});
+
+test('PM proposal submission saves the first formal quote atomically and retry never duplicates it',()=>{
+ const h=harness(),db=h.context.readDB(),creatorId=db.creators[1].id,campaignId=db.collaborations.find(r=>r.id===h.id).campaignId;
+ vm.runInContext("user=USERS.find(u=>u.id==='pm1');page='creators';",h.context);
+ const values={campaignId,total:'900',currency:'USD',clientQuote:'1500',rights:'30 days',quantity0:'0',quantity1:'1',type1:'dedicated',quantity2:'0'};
+ const before=JSON.stringify(db),savedBefore=JSON.stringify(h.stored());
+ h.setFailure(true);
+ const attempt=h.submit('submit',values,creatorId);
+ assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),savedBefore);
+ assert.equal(attempt.form.values.clientQuote,'1500');assert.equal(attempt.form.dataset.committed,undefined);assert.equal(attempt.button.disabled,false);
+ assert.match(h.message.textContent,/保存失败/);
+ h.setFailure(false);
+ h.dispatch('submit',{preventDefault(){},target:attempt.form});
+ const saved=h.stored(),record=saved.collaborations.find(r=>r.creatorId===creatorId&&r.campaignId===campaignId);
+ assert(record);assert.equal(model.proposalStatus(record),'待客户报价');assert.equal(record.clientQuoteDraft,undefined);
+ assert.equal(model.clientQuoteHistory(record).length,1);assert.equal(model.clientQuoteHistory(record)[0].amount,1500);
+ assert.equal(model.customerAcceptanceFor(record),null);assert.equal(attempt.form.dataset.committed,'true');
+ const after=JSON.stringify(saved);h.dispatch('submit',{preventDefault(){},target:attempt.form});assert.equal(JSON.stringify(h.stored()),after);
+ const html=h.context.clientQuotePanel(h.context.readDB().collaborations.find(r=>r.id===record.id));
+ assert.doesNotMatch(html,/quote-draft-label|data-kind="negotiationQuote"/);assert.match(html,/data-kind="customerOffer"/);
+});
+
+test('legacy proposal quotation shows the recorded initial amount without inventing a timestamp or mutating history',()=>{
+ const h=harness(),r=h.context.readDB().collaborations.find(row=>row.id===h.id);
+ Object.assign(r,{initial:425,currency:'USD',status:'待 PM 审核',events:[],submittedAt:'',history:[]});
+ for(const key of ['proposalVersions','confirmedAt','customerAcceptedAt','clientQuote','clientQuotes','customerOffers','creatorQuoteReplies'])delete r[key];
+ const before=JSON.stringify(r),html=h.context.clientQuotePanel(r);
+ const card=(html.match(/<article\b[^>]*>[\s\S]*?<\/article>/g)||[]).find(entry=>entry.includes('>提报报价</span>'));
+ assert(card);assert.match(card,/USD 425/);assert.match(card,/时间未记录/);assert.doesNotMatch(card,/Invalid Date/);
+ assert.equal(JSON.stringify(r),before);assert.equal(model.clientQuoteHistory(r).length,0);
+});
+
+test('quote cards retain version-specific content and distinguish a draft from formal history',()=>{
+ const h=harness(),r=h.context.readDB().collaborations.find(row=>row.id===h.id);
+ Object.assign(r,{status:'待 PM 反馈',currency:'USD',orderId:undefined,
+  proposalVersions:[
+   {id:'old',total:100,currency:'USD',at:'2026-10-01T00:00:00Z',items:[{platform:'YouTube',type:'dedicated',quantity:1}]},
+   {id:'new',total:200,currency:'USD',at:'2026-10-03T00:00:00Z',items:[{platform:'YouTube',type:'short',quantity:2}]}
+  ],
+  clientQuotes:[{id:'old-quote',round:1,amount:150,currency:'USD',at:'2026-10-02T00:00:00Z'}],
+  customerOffers:[{quoteId:'old-quote',round:1,amount:140,at:'2026-10-04T00:00:00Z'}],
+  creatorQuoteReplies:[{round:1,amount:110,versionId:'old',at:'2026-10-04T01:00:00Z'}],
+  clientQuoteDraft:{amount:250,currency:'USD',versionId:'new',at:'2026-10-04T02:00:00Z',by:'pm1'}
+ });
+ const before=JSON.stringify(r),html=h.context.clientQuotePanel(r),cards=html.match(/<article\b[^>]*>[\s\S]*?<\/article>/g);
+ for(const label of ['对客报价','客户还价','达人回价']){
+  const card=cards.find(card=>card.includes('>'+label+'</span>')&&!card.includes('quote-draft'));
+  assert.match(card,/YouTube dedicated × 1/);assert.doesNotMatch(card,/YouTube short/);
+  assert.match(card,/USD/);
+ }
+ const draft=cards.find(card=>card.includes('quote-draft'));
+ assert.match(draft,/quote-draft-label">草稿/);assert.match(draft,/USD 250/);assert.match(draft,/YouTube short × 2/);
+ assert.equal(model.clientQuoteHistory(r).length,1);assert.equal(JSON.stringify(r),before);
+ r.clientQuotes[0].at='2026-10-03T00:00:00Z';
+ assert.match(h.context.clientQuotePanel(r),/视频内容未记录/);
+});
+
+test('followup proposal rows always show both quotation columns while project rows keep their existing toggle',()=>{
  const h=harness(),db=h.context.readDB(),r=db.collaborations.find(x=>x.id===h.id);
  const c=db.creators.find(x=>x.id===r.creatorId);c.accounts=[{platform:'Instagram',handle:'@multi',url:'',followers:100},{platform:'YouTube',handle:'@channel',url:'',followers:200}];
  for(const account of model.USERS){
-  for(const prices of [false,true]){
-   vm.runInContext(`user=USERS.find(u=>u.id===${JSON.stringify(account.id)});showPrices=${prices};`,h.context);
+  for(const module of ['followup','projects'])for(const prices of [false,true]){
+   vm.runInContext(`user=USERS.find(u=>u.id===${JSON.stringify(account.id)});page=${JSON.stringify(module)};showPrices=${prices};`,h.context);
    const html=h.context.orders([r]);
-   assert.match(html,/Instagram \/ YouTube/);assert.doesNotMatch(html,/下一步|next-action/);
-   assert.equal((html.match(/<th scope=/g)||[]).length,prices?9:7);
-   assert.equal((html.match(/<td[ >]/g)||[]).length,prices?9:7);
-   assert.match(html,/<th scope="col">最近更新<\/th><th scope="col">停留时间（小时）<\/th>/);
+   assert.match(html,/Instagram \/ YouTube/);
+   if(module==='followup')assert.doesNotMatch(html,/下一步|停留时间|proposal-stay|超过 12 小时/);
+   else assert.doesNotMatch(html,/下一步|next-action/);
+   const columns=module==='followup'?8:prices?9:7;
+   assert.equal((html.match(/<th scope=/g)||[]).length,columns);
+   assert.equal((html.match(/<td[ >]/g)||[]).length,columns);
+   if(module==='followup')assert.match(html,/<th scope="col">达人最新报价<\/th><th scope="col">客户最新报价<\/th>/);
+   if(module==='followup')assert.match(html,/<th scope="col">最近更新<\/th><\/tr>/);
+   else assert.match(html,/<th scope="col">最近更新<\/th><th scope="col">停留时间（小时）<\/th>/);
    assert.match(html,/data-detail-row/);assert.match(html,/查看提报/);
   }
+ }
+});
+
+test('followup next steps open details without writing and keep administrator and direct PM views read only',()=>{
+ const h=harness(),db=h.context.readDB(),project=db.campaigns.find(p=>p.id===db.collaborations.find(r=>r.id===h.id).campaignId);
+ project.pmId='pm1';db.users=[{id:'a',directPmId:'pm2'}];
+ const op=model.USERS.find(u=>u.id==='a'),r=model.submitPackage(db,op,db.creators[1].id,{campaignId:project.id,total:100,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:1}]});
+ const before=JSON.stringify(db),stored=JSON.stringify(h.stored()),opened=[];h.context.opened=opened;
+ vm.runInContext("page='followup';user=USERS.find(u=>u.id==='pm1');coopDetail=id=>opened.push(id);",h.context);
+ const action=h.context.proposalNextAction(r);
+ assert.match(action,/next-action/);assert.match(action,/审核提报/);assert.match(action,new RegExp('data-coop="'+r.id+'"'));assert.doesNotMatch(action,/data-action=|data-kind=/);
+ const button={dataset:{coop:r.id},classList:{contains:name=>name==='next-action'},matches:()=>false,hasAttribute:()=>false};
+ h.dispatch('click',{target:{closest:selector=>selector==='button'?button:null}});
+ assert.deepEqual(opened,[r.id]);assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+ for(const account of ['admin','pm2','a']){
+  vm.runInContext(`user=USERS.find(u=>u.id===${JSON.stringify(account)});`,h.context);
+  const readonly=h.context.proposalNextAction(r);
+  assert.match(readonly,/查看详情/);assert.doesNotMatch(readonly,/next-action|审核提报/);
+ }
+ assert(model.visibleCoops(db,model.USERS.find(u=>u.id==='pm2')).some(x=>x.id===r.id));
+});
+
+test('followup current handler follows existing permissions and deduplicates a self-managed PM',()=>{
+ const h=harness(),db=h.context.readDB(),project=db.campaigns.find(p=>p.id===db.collaborations.find(r=>r.id===h.id).campaignId);
+ project.pmId='pm1';
+ const pm=model.USERS.find(u=>u.id==='pm1'),op=model.USERS.find(u=>u.id==='a'),terms={campaignId:project.id,total:100,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:1}]};
+ const proposal=model.submitPackage(db,op,db.creators[1].id,terms);
+ assert.equal(h.context.proposalHandler(proposal),'当前处理：'+pm.name);
+ const self=model.submitPackage(db,pm,db.creators[2].id,{...terms,clientQuote:150});
+ assert.equal(h.context.proposalHandler(self),'当前处理：'+pm.name);
+ assert.equal((h.context.proposalHandler(self).match(/PM · AJ/g)||[]).length,1);
+ self.orderId='created-order';self.status='已创建订单';
+ assert.equal(h.context.proposalHandler(self),'已成单 · 记录留存');
+});
+
+test('followup price cells distinguish current acceptance, matching drafts and invalidated historical prices',()=>{
+ const h=harness(),db=h.context.readDB(),project=db.campaigns.find(p=>p.id===db.collaborations.find(r=>r.id===h.id).campaignId);
+ project.pmId='pm1';
+ const pm=model.USERS.find(u=>u.id==='pm1'),op=model.USERS.find(u=>u.id==='a'),terms={campaignId:project.id,total:100,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:1}]};
+ const r=model.submitPackage(db,op,db.creators[1].id,terms);
+ model.updateCoop(db,pm,r.id,'approve',{clientQuote:200});model.submitNegotiationQuote(db,pm,r.id,200);
+ assert.match(h.context.followupPriceCells(r),/USD 200<\/td>/);
+ model.updateCoop(db,pm,r.id,'customerAccept',{clientPrice:150});
+ assert.match(h.context.followupPriceCells(r),/USD 150<\/td>/);
+ model.revisePackage(db,op,r.id,{...terms,total:125,reason:'Updated scope'});
+ assert.equal(r.clientPrice,150);assert.equal(model.customerAcceptanceFor(r),null);
+ let cells=h.context.followupPriceCells(r);
+ assert.match(cells,/USD 125/);assert.match(cells,/待确认<\/td>/);assert.doesNotMatch(cells,/USD (150|200)|客户已接受|正式报价/);
+ model.updateCoop(db,pm,r.id,'approve',{clientQuote:250});
+ cells=h.context.followupPriceCells(r);assert.match(cells,/USD 250<\/td>/);assert.doesNotMatch(cells,/USD 150|客户已接受/);
+ r.clientQuoteDraft.versionId='previous-version';
+ cells=h.context.followupPriceCells(r);assert.match(cells,/待确认<\/td>/);assert.doesNotMatch(cells,/USD (150|200|250)|报价草稿/);
+ model.submitNegotiationQuote(db,pm,r.id,250);
+ const latest=r.clientQuotes.at(-1),version=r.proposalVersions.at(-1);
+ latest.at=version.at;
+ assert.doesNotMatch(h.context.followupPriceCells(r),/USD 250|正式报价/);
+ latest.at=new Date(Date.parse(version.at)+1).toISOString();
+ assert.match(h.context.followupPriceCells(r),/USD 250<\/td>/);
+ latest.at=version.at;latest.versionId=version.id;
+ assert.match(h.context.followupPriceCells(r),/USD 250<\/td>/);
+ latest.versionId='previous-version';latest.at=new Date(Date.parse(version.at)+1).toISOString();
+ assert.doesNotMatch(h.context.followupPriceCells(r),/USD 250|正式报价/);
+ model.revisePackage(db,op,r.id,{...terms,total:130,currency:'EUR',reason:'Updated currency'});
+ r.clientQuoteDraft={amount:300,currency:'USD',versionId:r.proposalVersions.at(-1).id};
+ cells=h.context.followupPriceCells(r);
+ assert.match(cells,/EUR 130/);assert.match(cells,/待确认<\/td>/);assert.doesNotMatch(cells,/EUR (150|200|250|300)|报价草稿|客户已接受/);
+ r.orderId='settled-order';r.effectivePricing={cost:175,clientPrice:275,currency:'GBP',quantity:1};
+ const before=JSON.stringify(r);cells=h.context.followupPriceCells(r);
+ assert.match(cells,/GBP 175<\/td>/);assert.match(cells,/GBP 275<\/td>/);assert.equal(JSON.stringify(r),before);
+});
+
+test('followup empty states distinguish missing records, filters and queues without changing business data',()=>{
+ const h=harness(),db=h.context.readDB(),rows=[db.collaborations.find(r=>r.id===h.id)],before=JSON.stringify(db),stored=JSON.stringify(h.stored());
+ vm.runInContext("page='followup';user=USERS.find(u=>u.id==='a');",h.context);
+ const noRecords=h.context.followupEmpty([]);
+ assert.match(noRecords,/<h2>还没有提报<\/h2>/);assert.match(noRecords,/data-page="creators"[^>]*>选择达人提报/);
+ assert.doesNotMatch(noRecords,/<button[^>]*class="primary"[^>]*data-page="creators"/);
+ vm.runInContext("user=USERS.find(u=>u.id==='admin');",h.context);assert.doesNotMatch(h.context.followupEmpty([]),/data-page="creators"/);
+ vm.runInContext("user=USERS.find(u=>u.id==='a');queue='others';q='no matching creator';platform='TikTok';stage='谈价中';",h.context);
+ const filtered=h.context.followupEmpty(rows);assert.match(filtered,/没有符合条件的提报/);assert.match(filtered,/data-clear/);
+ const click=button=>h.dispatch('click',{target:{closest:selector=>selector==='button'?button:null}});
+ click({dataset:{},matches:()=>false,hasAttribute:name=>name==='data-clear'});
+ const cleared=vm.runInContext('({q,platform,stage,queue})',h.context);
+ assert.deepEqual(JSON.parse(JSON.stringify(cleared)),{q:'',platform:'全部',stage:'全部',queue:'others'});
+ vm.runInContext("queue='mine';",h.context);
+ const pending=h.context.followupEmpty(rows);assert.match(pending,/当前没有待你处理的提报/);assert.match(pending,/data-queue="all"/);
+ click({dataset:{queue:'all'},matches:()=>false,hasAttribute:()=>false});
+ assert.equal(vm.runInContext('queue',h.context),'all');assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+});
+
+test('followup controls offer one submission entry and a result count with sorting inside expanded filters',()=>{
+ const h=harness(),db=h.context.readDB(),rows=[db.collaborations.find(r=>r.id===h.id)],before=JSON.stringify(db),stored=JSON.stringify(h.stored());
+ vm.runInContext("page='followup';user=USERS.find(u=>u.id==='a');settingsOpen=true;activeView='old-view';",h.context);
+ const controls=h.context.followupControls(rows,rows,rows),toolbar=h.context.followupViewToolbar(rows);
+ assert.match(controls,/data-page="creators"[^>]*>[^<]*发起提报/);
+ assert.doesNotMatch(controls,/data-filter="sort"/);
+ assert.match(toolbar,/共\s*(?:<[^>]+>)*1(?:<\/[^>]+>)*\s*条结果/);
+ assert.doesNotMatch(toolbar,/<button|<select|data-view|data-prices|保存|设置|排序/);
+ vm.runInContext('moreFilters=true;',h.context);
+ const expanded=h.context.followupControls(rows,rows,rows);
+ assert.match(expanded,/<div id="more-filters"[\s\S]*data-filter="sort"/);
+ assert.doesNotMatch(expanded,/data-view=|data-view-settings|data-save-view|data-manage-views|data-prices/);
+ h.context.renderFollowup(rows,rows,rows);
+ const rendered=vm.runInContext('content.innerHTML',h.context);
+ assert.equal((rendered.match(/发起提报/g)||[]).length,1);
+ vm.runInContext("user=USERS.find(u=>u.id==='admin');",h.context);
+ assert.doesNotMatch(h.context.followupControls(rows,rows,rows),/发起提报/);
+ assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+});
+
+test('removing a followup filter chip clears only that condition and never writes business data',()=>{
+ const h=harness(),db=h.context.readDB(),r=db.collaborations.find(row=>row.id===h.id),before=JSON.stringify(db),stored=JSON.stringify(h.stored());
+ const initial={q:'Mia',campaignFilter:r.campaignId,stage:'谈价中',platform:'Instagram',country:'美国',status:'待 PM 反馈',owner:'a',queue:'others',sort:'recent'};
+ h.context.chipFilters=initial;h.context.filterFocus={focus(){}};
+ vm.runInContext("page='followup';root.querySelector=selector=>selector==='[data-more-filters]'?filterFocus:null;",h.context);
+ for(const key of ['q','campaignFilter','stage','platform','country','status','owner']){
+  vm.runInContext('applyWorkspace(chipFilters);',h.context);
+  assert.match(h.context.followupControls([],[],[]),new RegExp('data-remove-filter="'+key+'"'));
+  const button={dataset:{removeFilter:key},matches:()=>false,hasAttribute:()=>false};
+  h.dispatch('click',{target:{closest:selector=>selector==='button'?button:null}});
+  const after=vm.runInContext('({q,campaignFilter,stage,platform,country,status,owner,queue,sort})',h.context);
+  assert.deepEqual(JSON.parse(JSON.stringify(after)),{...initial,[key]:key==='q'?'':'全部'});
+  assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+ }
+});
+
+test('old board and calendar preferences restore followup as a list without changing other modules or business data',()=>{
+ for(const previousView of ['board','calendar']){
+  const values=new Map(),session={getItem:key=>values.get(key),setItem:(key,value)=>values.set(key,value)};
+  const h=harness(session),before=JSON.stringify(h.context.readDB()),stored=JSON.stringify(h.stored());
+  for(const module of ['followup','projects','delivery']){
+   vm.runInContext(`page='${module}';q='kept search';queue='all';sort='recent';moreFilters=true;view='${previousView}';settingsOpen=true;activeView='legacy-saved-view';rememberWorkspace();restoreWorkspace();`,h.context);
+   const state=vm.runInContext('({view,settingsOpen,activeView,q,queue,sort,moreFilters})',h.context);
+   assert.equal(state.view,module==='followup'?'list':previousView);
+   assert.equal(state.settingsOpen,module!=='followup');
+   assert.equal(state.activeView,module==='followup'?'':'legacy-saved-view');
+   assert.equal(state.q,'kept search');assert.equal(state.queue,'all');assert.equal(state.sort,'recent');assert.equal(state.moreFilters,true);
+  }
+  assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
  }
 });
 
@@ -386,7 +656,7 @@ test('reload restores each module, account, filters and project context without 
   const restored=vm.runInContext('restoreLocation();restoreWorkspace();({userId:user.id,page,campaignId,projectTab,projectView,q,view,queue,dialog})',second.context);
   assert.equal(restored.userId,saved.userId);assert.equal(restored.page,module);
   assert.equal(restored.projectTab,'members');assert.equal(restored.projectView,'board');assert(restored.campaignId);
-  assert.equal(restored.q,'Isla');assert.equal(restored.queue,'all');assert.equal(restored.view,module==='delivery'?'group':'board');assert.equal(restored.dialog,null);
+  assert.equal(restored.q,'Isla');assert.equal(restored.queue,'all');assert.equal(restored.view,module==='followup'?'list':module==='delivery'?'group':'board');assert.equal(restored.dialog,null);
   assert.deepEqual(first.stored(),before);
  }
 });
@@ -399,7 +669,7 @@ test('saved session filters for removed proposal stages restore to their retaine
   const restored=harness(session);
   const state=vm.runInContext('restoreLocation();restoreWorkspace();({page,stage,status,q,view,queue})',restored.context);
   assert.equal(state.page,module);assert.equal(state.stage,'谈价中');assert.equal(state.status,'议价待客户确认');
-  assert.equal(state.q,'Isla');assert.equal(state.view,'board');assert.equal(state.queue,'all');
+  assert.equal(state.q,'Isla');assert.equal(state.view,module==='followup'?'list':'board');assert.equal(state.queue,'all');
   const final=vm.runInContext("applyWorkspace({stage:'客户最终确认',status:'待客户最终确认'});({stage,status})",restored.context);
   assert.equal(final.stage,'合作确认');assert.equal(final.status,'待达人确认');
   assert.deepEqual(first.stored(),before);
@@ -471,8 +741,8 @@ test('submission opens the creator page, carries a reloadable route and never op
 test('new creator clears hiding filters after persistence and does not create a collaboration',()=>{
  const h=harness(),count=h.context.readDB().collaborations.length;
  vm.runInContext("q='nonmatching';country='德国';platform='TikTok';minimumFollowers=500000;",h.context);
- h.submit('creator',{handle:'@new_record',profile:'https://instagram.com/new_record',contact:'creator@example.com',name:'New record',platform:'Instagram',country:'美国',language:'英语',followers:'0',views:'0'});
- assert.equal(h.stored().creators.at(-1).name,'New record');assert.equal(h.stored().collaborations.length,count);
+ h.submit('creator',{handle:'@new_record',profile:'https://instagram.com/new_record',contact:'creator@example.com',name:'New record',platform:'Instagram',country:'美国',language:'英语',creatorType:'AI工具',followers:'0',views:'0'});
+ assert.equal(h.stored().creators.at(-1).name,'New record');assert.equal(h.stored().creators.at(-1).creatorType,'AI工具');assert.equal(h.stored().collaborations.length,count);
  assert.equal(vm.runInContext('q',h.context),'');assert.equal(vm.runInContext('minimumFollowers',h.context),0);
  assert.equal(vm.runInContext('country',h.context),'全部');
 });
@@ -494,10 +764,10 @@ test('page dirty guard cancels navigation without clearing input state',()=>{
 
 test('failed creator creation preserves filters and duplicate accounts do not add records',()=>{
  const h=harness(),count=h.stored().creators.length;
- const values={handle:'@retry_new',profile:'https://instagram.com/retry_new',contact:'creator@example.com',name:'Retry new',platform:'Instagram',country:'美国',language:'英语',followers:'0',views:'0'};
+ const values={handle:'@retry_new',profile:'https://instagram.com/retry_new',contact:'creator@example.com',name:'Retry new',platform:'Instagram',country:'美国',language:'英语',creatorType:'3D建模',followers:'0',views:'0'};
  vm.runInContext("q='keep filter';country='德国';",h.context);h.setFailure(true);h.submit('creator',values);
  assert.equal(h.stored().creators.length,count);assert.equal(vm.runInContext('q',h.context),'keep filter');assert.equal(vm.runInContext('country',h.context),'德国');
- h.setFailure(false);h.submit('creator',values);assert.equal(h.stored().creators.length,count+1);
+ h.setFailure(false);h.submit('creator',values);assert.equal(h.stored().creators.length,count+1);assert.equal(h.stored().creators.at(-1).creatorType,'3D建模');
  h.submit('creator',values);assert.equal(h.stored().creators.length,count+1);assert.equal(model.creatorInitiators(h.stored().creators.at(-1)).length,1);
 });
 
@@ -513,11 +783,11 @@ test('creator detail hides proposal form until requested and can preserve a pend
 
 
 test('single creator saves before asking whether to propose, failure never opens success prompt',()=>{
- const h=harness(),before=h.stored(),values={handle:'@modal_test',profile:'https://instagram.com/modal_test',contact:'modal@example.com',name:'Modal creator',platform:'Instagram',country:'美国',language:'英语',followers:'',views:''};
+ const h=harness(),before=h.stored(),values={handle:'@modal_test',profile:'https://instagram.com/modal_test',contact:'modal@example.com',name:'Modal creator',platform:'Instagram',country:'美国',language:'英语',creatorType:'AI工具',followers:'',views:''};
  h.setFailure(true);const failed=h.submit('creator',values);
- assert.equal(h.context.lastPanel,undefined);assert.equal(h.stored().creators.length,before.creators.length);assert.equal(failed.form.values.name,'Modal creator');
+ assert.equal(h.context.lastPanel,undefined);assert.equal(h.stored().creators.length,before.creators.length);assert.equal(failed.form.values.name,'Modal creator');assert.equal(failed.form.values.creatorType,'AI工具');
  h.setFailure(false);h.submit('creator',values);
- assert.equal(h.stored().creators.length,before.creators.length+1);assert.equal(h.stored().collaborations.length,before.collaborations.length);
+ assert.equal(h.stored().creators.length,before.creators.length+1);assert.equal(h.stored().creators.at(-1).creatorType,'AI工具');assert.equal(h.stored().collaborations.length,before.collaborations.length);
  assert.equal(h.context.lastPanel.title,'达人已保存');assert.match(h.context.lastPanel.body,/是否立即提报到项目/);assert.match(h.context.lastPanel.body,/暂不提报/);assert.match(h.context.lastPanel.body,/data-submit-creator/);
  assert.equal(vm.runInContext('drawerDirty',h.context),false);
 });
@@ -555,9 +825,9 @@ test('intake recognizes channel tabs and rejects content links and lookalike dom
 });
 test('intake saves multiple independent account metrics atomically and retries without duplicates',()=>{
  const h=harness(),count=h.stored().creators.length;
- const values={name:'Multi platform',contact:'multi@example.com',country:'美国',language:'英语',accountsJSON:JSON.stringify([{url:'https://www.tiktok.com/@multi_test',followers:'123',views:'0'},{url:'https://www.youtube.com/@MultiTest/videos',followers:'',views:'42'}])};
+ const values={name:'Multi platform',contact:'multi@example.com',country:'美国',language:'英语',creatorType:'3D建模',accountsJSON:JSON.stringify([{url:'https://www.tiktok.com/@multi_test',followers:'123',views:'0'},{url:'https://www.youtube.com/@MultiTest/videos',followers:'',views:'42'}])};
  h.setFailure(true);h.submit('creator',values);assert.equal(h.stored().creators.length,count);assert.match(h.message.textContent,/保存失败/);
- h.setFailure(false);h.submit('creator',values);const c=h.stored().creators.at(-1);assert.equal(c.accounts.length,2);assert.equal(c.accounts[0].views,0);assert.equal(c.accounts[1].followers,null);assert.equal(c.accounts[1].views,42);
+ h.setFailure(false);h.submit('creator',values);const c=h.stored().creators.at(-1);assert.equal(c.creatorType,'3D建模');assert.equal(c.accounts.length,2);assert.equal(c.accounts[0].views,0);assert.equal(c.accounts[1].followers,null);assert.equal(c.accounts[1].views,42);
  h.submit('creator',values);assert.equal(h.stored().creators.length,count+1);
 });
 
@@ -620,15 +890,18 @@ test('confirmed reset clears creator work once and preserves projects and subseq
 });
 
 
-test('new creator requires country and language and converts k metrics without changing zero or blanks',()=>{
+test('new creator requires country, language and a supported type and converts k metrics without changing zero or blanks',()=>{
  const h=harness();
- const values={name:'K units',contact:'k@example.com',country:'美国',language:'英语',metricsUnit:'k',accountsJSON:JSON.stringify([{url:'https://tiktok.com/@units_test',followers:'12.5',views:'0'},{url:'https://youtube.com/@UnitsTest',followers:'',views:'1.001'}])};
+ const values={name:'K units',contact:'k@example.com',country:'美国',language:'英语',creatorType:'AI工具',metricsUnit:'k',accountsJSON:JSON.stringify([{url:'https://tiktok.com/@units_test',followers:'12.5',views:'0'},{url:'https://youtube.com/@UnitsTest',followers:'',views:'1.001'}])};
  const initial=h.context.readDB().creators.length;
  h.submit('creator',{...values,country:''});assert.equal(h.context.readDB().creators.length,initial);assert.match(h.message.textContent,/请选择国家/);
  h.submit('creator',{...values,language:''});assert.equal(h.context.readDB().creators.length,initial);assert.match(h.message.textContent,/请选择语言/);
+ for(const creatorType of ['', 'KOL']){
+  h.submit('creator',{...values,creatorType});assert.equal(h.context.readDB().creators.length,initial);assert.equal(h.stored().creators.length,initial);assert.match(h.message.textContent,/达人类型/);
+ }
  h.submit('creator',values);
  const creator=h.stored().creators.find(c=>c.name==='K units');
- assert.equal(creator.accounts[0].followers,12500);assert.equal(creator.accounts[0].views,0);
+ assert.equal(creator.creatorType,'AI工具');assert.equal(creator.accounts[0].followers,12500);assert.equal(creator.accounts[0].views,0);
  assert.equal(creator.accounts[1].followers,null);assert.equal(creator.accounts[1].views,1001);
  assert.equal(vm.runInContext("intakeMetricValue('1.001','k')",h.context),1001);
  assert.throws(()=>vm.runInContext("intakeMetricValue('-1','k')",h.context));
@@ -742,7 +1015,7 @@ test('platform selectors serialize cooperation notes separately from creator not
 
 test('new proposal saves USD and optional rights without client quote or recommendation controls',()=>{
  const h=harness();
- vm.runInContext("globalThis.creator=db.creators[0];creator.accounts=[{platform:'Instagram',handle:'@proposal',url:'https://instagram.com/proposal',followers:null,views:null}];globalThis.proposalHTML=submissionForm(creator.id);",h.context);
+ vm.runInContext("globalThis.creator=db.creators[0];creator.accounts=[{platform:'Instagram',handle:'@proposal',url:'https://instagram.com/proposal',followers:1000,views:500}];globalThis.proposalHTML=submissionForm(creator.id);",h.context);
  assert.match(h.context.proposalHTML,/方案总价（USD）/);
  assert.match(h.context.proposalHTML,/type="hidden" name="currency" value="USD"/);
  assert.doesNotMatch(h.context.proposalHTML,/<select name="currency"|name="clientQuote"|name="reason"/);
@@ -780,16 +1053,16 @@ test('regional page and entry are available only in administrator view',()=>{
 });
 
 test('duplicate unsubmitted intake shares the creator, preserves profile and rolls back failed membership save',()=>{
- const h=harness(),values={profile:'https://instagram.com/shared_intake',contact:'shared@example.com',name:'Original',country:'美国',language:'英语',followers:'100',views:'20'};
+ const h=harness(),values={profile:'https://instagram.com/shared_intake',contact:'shared@example.com',name:'Original',country:'美国',language:'英语',creatorType:'AI工具',followers:'100',views:'20'};
  h.submit('creator',values);
  const original=h.stored().creators.at(-1),count=h.stored().creators.length;
  vm.runInContext("user=USERS.find(u=>u.id==='a')",h.context);
- h.setFailure(true);h.submit('creator',{...values,name:'Do not overwrite'});
- assert(!model.creatorInitiators(h.context.readDB().creators.at(-1)).includes('a'));
- h.setFailure(false);h.submit('creator',{...values,name:'Do not overwrite'});
+ h.setFailure(true);h.submit('creator',{...values,name:'Do not overwrite',creatorType:'3D建模'});
+ assert(!model.creatorInitiators(h.context.readDB().creators.at(-1)).includes('a'));assert.equal(h.context.readDB().creators.at(-1).creatorType,'AI工具');
+ h.setFailure(false);h.submit('creator',{...values,name:'Do not overwrite',creatorType:'3D建模'});
  const shared=h.stored().creators.at(-1);
  assert.equal(h.stored().creators.length,count);assert.equal(shared.id,original.id);assert.equal(shared.displayCode,original.displayCode);
- assert.equal(shared.name,'Original');assert.deepEqual(shared.accounts,original.accounts);
+ assert.equal(shared.name,'Original');assert.equal(shared.creatorType,'AI工具');assert.deepEqual(shared.accounts,original.accounts);
  const user=model.USERS.find(u=>u.id==='a');
  assert(model.creatorResults(h.stored(),user).some(c=>c.id===shared.id));assert(model.canEditCreator(h.stored(),user,shared));
  h.submit('creator',values);assert.equal(model.creatorInitiators(h.stored().creators.at(-1)).filter(id=>id==='a').length,1);
@@ -824,7 +1097,7 @@ test('package quote timeline shows the original submission without spending a PM
  model.updateCoop(db,pm,r.id,'approve',{clientQuote:1000});model.submitNegotiationQuote(db,pm,r.id,1000);model.recordCustomerOffer(db,pm,r.id,800);model.addCreatorQuoteReply(db,operator,r.id,750);
  as(operator);const replied=h.context.clientQuotePanel(r);
  assert.match(replied,/等待 PM 与客户沟通。/);assert.doesNotMatch(replied,/data-kind="(?:negotiationQuote|customerOffer|creatorQuoteReply)"/);
- assert.deepEqual(badges(replied),['对客报价 R1','客户还价 R1','运营回价 R1']);assert.equal(model.clientQuoteHistory(r).length,1);
+ assert.deepEqual(badges(replied),['提报报价','提报报价','对客报价','客户还价','达人回价']);assert.equal(model.clientQuoteHistory(r).length,1);
  as(pm);assert.match(h.context.clientQuotePanel(r),/对客报价 · USD · R2/);
 });
 
@@ -834,7 +1107,7 @@ test('quote timeline renders role-specific composers, escaped notes and the roun
  const pm=model.USERS.find(u=>u.id===model.reviewPm(db,r));
  model.updateCoop(db,pm,r.id,'approve',{clientQuote:1000});model.submitNegotiationQuote(db,pm,r.id,1000,'<script>test</script>');
  const html=h.context.clientQuotePanel(r);
- assert.match(html,/对客报价 R1/);assert.match(html,/&lt;script&gt;/);assert.match(html,/data-kind="customerOffer"/);assert.doesNotMatch(html,/data-kind="negotiationQuote"/);
+ assert.match(html,/对客报价<\/span><span class="quote-record-round">R1/);assert.match(html,/&lt;script&gt;/);assert.match(html,/data-kind="customerOffer"/);assert.doesNotMatch(html,/data-kind="negotiationQuote"/);
  r.ownerId=model.USERS.find(u=>u.role==='operator').id;
  model.recordCustomerOffer(db,pm,r.id,800,'客户预算');
  vm.runInContext(`user=USERS.find(u=>u.id===${JSON.stringify(r.ownerId)});`,h.context);
@@ -851,16 +1124,17 @@ test('quote timeline renders role-specific composers, escaped notes and the roun
   model.recordCustomerOffer(db,pm,r.id,counter);model.addCreatorQuoteReply(db,operator,r.id,counter);
  }
  for(const record of [...r.clientQuotes,...r.customerOffers,...r.creatorQuoteReplies])record.at='2026-10-13T08:00:00.000Z';
- assert.equal(r.status,'待 PM 反馈');const full=h.context.clientQuotePanel(r);assert.doesNotMatch(full,/已报满/);assert.match(full,/data-kind="negotiationQuote"/);assert.match(full,/data-kind="customerAccept"/);
- assert.deepEqual([...full.matchAll(/<span class="quote-badge">([^<]+)<\/span>/g)].map(x=>x[1]),[3].flatMap(round=>['对客报价 R'+round,'客户还价 R'+round,'运营回价 R'+round]));
+ assert.equal(r.status,'待 PM 反馈');const full=h.context.clientQuotePanel(r);assert.doesNotMatch(full,/已报满/);assert.match(full,/data-kind="negotiationQuote"/);assert.match(full,/data-kind="acceptCurrentQuote"/);
+ assert.deepEqual([...full.matchAll(/<span class="quote-badge">([^<]+)<\/span>/g)].map(x=>x[1]),['提报报价',...[1,2,3].flatMap(()=>['对客报价','客户还价','达人回价'])]);
  model.updateCoop(db,pm,r.id,'feedback');
  assert.equal(r.status,'议价待客户确认');const awaitingDecision=h.context.clientQuotePanel(r);
- assert.match(awaitingDecision,/等待客户回复/);assert.doesNotMatch(awaitingDecision,/请登记客户愿意接受的价格|data-kind="(?:customerOffer|negotiationQuote)"/);assert.match(awaitingDecision,/data-kind="customerAccept"/);
+ assert.match(awaitingDecision,/等待客户回复/);assert.doesNotMatch(awaitingDecision,/请登记客户愿意接受的价格|data-kind="(?:customerOffer|negotiationQuote)"/);assert.match(awaitingDecision,/data-kind="acceptCurrentQuote"/);
 });
 
 test('pending proposal rejection requires a reason, respects roles and preserves failure inputs',()=>{
  const h=harness(),r=h.context.readDB().collaborations.find(x=>x.id===h.id);r.status='待 PM 审核';
  assert.match(h.context.submissionDecisionPanel(r),/data-kind="reject"/);
+ assert.match(h.context.submissionDecisionPanel(r),/<textarea[^>]*name="reason"[^>]*required/);
  vm.runInContext("user=USERS.find(u=>u.role==='operator');",h.context);
  assert.equal(h.context.submissionDecisionPanel(r),'');
  h.submit('reject',{reason:'不符合'});assert.equal(h.context.readDB().collaborations.find(x=>x.id===h.id).status,'待 PM 审核');
@@ -880,7 +1154,7 @@ test('operator rejection inbox offers both choices and resubmission form prefill
  const h=harness(),db=h.context.readDB(),r=db.collaborations.find(x=>x.id===h.id);
  r.status='不予提报';r.closeReason='画像不符合';r.closedAt=new Date().toISOString();
  r.ownerId=model.USERS.find(u=>u.role==='operator').id;
- r.proposalVersions=[{version:1,total:550,currency:'USD',rights:'180天授权',cooperationNotes:'保留备注',items:[{platform:'Instagram',type:'reel',quantity:2,publicationPlatforms:['Instagram']}]}];
+ r.proposalVersions=[{id:'rejected-scheme-v1',version:1,total:550,currency:'USD',rights:'180天授权',cooperationNotes:'保留备注',items:[{platform:'Instagram',type:'reel',quantity:2,publicationPlatforms:['Instagram']}]}];
  vm.runInContext(`user=USERS.find(u=>u.id===${JSON.stringify(r.ownerId)});page='followup';queue='mine';resubmissionId=${JSON.stringify(r.id)};`,h.context);
  const row=h.context.orders([r]);assert.match(row,/画像不符合/);assert.doesNotMatch(row,/data-resubmit-proposal|acknowledgeRejection/);
  const drawer=h.context.submissionDecisionPanel(r);assert.match(drawer,/data-resubmit-proposal/);assert.match(drawer,/acknowledgeRejection/);
@@ -940,7 +1214,7 @@ test('missing historical customer confirmation exposes PM recovery before operat
  assert.equal(h.stored().collaborations.find(x=>x.id===h.id).status,'已创建订单');
 });
 
-test('proposal stay column and overdue queue share the twelve-hour rule across visible roles',t=>{
+test('project stay column and followup overdue queue retain the twelve-hour rule across visible roles',t=>{
  const fixedNow=Date.parse('2026-10-13T12:00:00.000Z');t.mock.method(Date,'now',()=>fixedNow);
  const h=harness(),db=h.context.readDB(),sample=db.collaborations.find(r=>r.id===h.id),project=db.campaigns.find(p=>p.id===sample.campaignId);
  project.pmId='pm1';project.members=['a','b'];
@@ -953,19 +1227,25 @@ test('proposal stay column and overdue queue share the twelve-hour rule across v
  vm.runInContext("Date.now=()=>fixedNow;reset();page='followup';queue='all';user=USERS.find(u=>u.id==='a');",h.context);
  const tableRow=(html,id)=>[...html.matchAll(/<tr\b[\s\S]*?<\/tr>/g)].map(m=>m[0]).find(row=>row.includes('data-coop="'+id+'"'));
  const stayCell=row=>row.match(/<td\b([^>]*\bproposal-stay\b[^>]*)>([\s\S]*?)<\/td>/);
- for(const prices of [false,true]){
-  h.context.prices=prices;
-  const html=vm.runInContext("showPrices=prices;orders(selectOrders(db,user,criteria(),proposalRows()))",h.context);
-  assert.match(html,/<th scope="col">最近更新<\/th><th scope="col">停留时间（小时）<\/th>/);
+ for(const module of ['followup','projects'])for(const prices of [false,true]){
+  h.context.module=module;h.context.prices=prices;
+  const html=vm.runInContext("page=module;showPrices=prices;orders(selectOrders(db,user,criteria(),proposalRows()))",h.context);
   const headers=(html.match(/<th\b/g)||[]).length;
-  assert.equal(headers,prices?9:7);assert.equal((tableRow(html,'age-overdue').match(/<td\b/g)||[]).length,headers);
-  const overdue=stayCell(tableRow(html,'age-overdue')),boundary=stayCell(tableRow(html,'age-boundary'));
-  assert.equal(overdue[2],'13.3');assert.match(overdue[1],/\bis-overdue\b/);
-  assert.equal(boundary[2],'12.0');assert.doesNotMatch(boundary[1],/\bis-overdue\b/);
-  assert.equal(stayCell(tableRow(html,'age-recent'))[2],'2.5');assert.equal(stayCell(tableRow(html,'age-note'))[2],'13.0');
-  for(const id of ['age-unknown','age-created','age-ended']){const cell=stayCell(tableRow(html,id));assert.equal(cell[2],'—');assert.doesNotMatch(cell[1],/\bis-overdue\b/);}
+  assert.equal(headers,module==='followup'?8:prices?9:7);assert.equal((tableRow(html,'age-overdue').match(/<td\b/g)||[]).length,headers);
+  if(module==='followup'){
+   assert.match(html,/<th scope="col">最近更新<\/th><\/tr>/);
+   assert.doesNotMatch(html,/停留时间|proposal-stay|超过 12 小时/);
+  }else{
+   assert.match(html,/<th scope="col">最近更新<\/th><th scope="col">停留时间（小时）<\/th>/);
+   const overdue=stayCell(tableRow(html,'age-overdue')),boundary=stayCell(tableRow(html,'age-boundary'));
+   assert.equal(overdue[2],'13.3');assert.match(overdue[1],/\bis-overdue\b/);
+   assert.equal(boundary[2],'12.0');assert.doesNotMatch(boundary[1],/\bis-overdue\b/);
+   assert.equal(stayCell(tableRow(html,'age-recent'))[2],'2.5');assert.equal(stayCell(tableRow(html,'age-note'))[2],'13.0');
+   for(const id of ['age-unknown','age-created','age-ended']){const cell=stayCell(tableRow(html,id));assert.equal(cell[2],'—');assert.doesNotMatch(cell[1],/\bis-overdue\b/);}
+  }
   assert.equal(tableRow(html,'age-other-owner'),undefined);assert.equal(tableRow(html,'age-delivery'),undefined);
  }
+ vm.runInContext("page='followup';",h.context);
  for(const [account,ids] of [['a',['age-note','age-overdue']],['pm1',['age-note','age-other-owner','age-overdue']]]){
   h.context.account=account;
   const result=vm.runInContext("user=USERS.find(u=>u.id===account);queue='overdue';(()=>{const overdueSource=proposalRows(),overdueRows=selectOrders(db,user,criteria(),overdueSource);return {ids:overdueRows.map(r=>r.id),controls:followupControls(overdueSource,overdueRows,overdueRows),table:orders(overdueRows)};})()",h.context);
@@ -1013,11 +1293,11 @@ test('delivery stage filters and queue counts stay within visible delivery recor
  assert(!html.includes('提报审核'));assert(!html.includes('delivery-overview'));
 });
 
-test('delivery always renders the list even with a saved alternate view',()=>{
+test('delivery always renders the eight-column list even with a saved alternate view',()=>{
  const h=harness();
  const html=vm.runInContext("page='delivery';queue='all';view='list';showPrices=false;renderDelivery();content.innerHTML",h.context);
- assert.match(html,/<th>交付阶段<\/th><th>具体进度<\/th><th>最近更新<\/th><th>停留时间（小时）<\/th>/);
- assert(!html.includes('<th>Margin</th>'));
+ assert.deepEqual([...html.matchAll(/<th(?: scope="col")?>([^<]+)<\/th>/g)].map(match=>match[1]),['达人','项目 / 视频','负责运营','交付阶段','具体进度','达人最新报价','客户最新报价','最近更新']);
+ assert.doesNotMatch(html,/Margin|交付 ID|record-id|停留时间|delivery-stay|<small>最近更新<\/small>/);
  vm.runInContext("applyWorkspace({view:'calendar',queue:'all'});renderDelivery();",h.context);
  assert.equal(vm.runInContext('view',h.context),'calendar');
  assert.match(vm.runInContext('content.innerHTML',h.context),/aria-label="视频交付列表"/);
@@ -1062,15 +1342,15 @@ test('drawer task distinguishes actionable work, another role waiting and comple
  const complete=h.context.workflowTodo(r);assert.match(complete,/合作订单已创建/);assert.doesNotMatch(complete,/data-page=|前往视频交付|待你处理/);
 });
 
-test('older quote rounds are hidden while current round and authorized composer remain together',()=>{
+test('all quote rounds remain visible above the authorized composer',()=>{
  const h=harness(),db=h.context.readDB(),r=db.collaborations.find(x=>x.id===h.id),pm=model.USERS.find(u=>u.id===model.reviewPm(db,r)),op=model.USERS.find(u=>u.id==='a');
  r.status='待 PM 审核';delete r.confirmedAt;delete r.customerAcceptedAt;r.ownerId=op.id;
  model.updateCoop(db,pm,r.id,'approve',{clientQuote:1000});model.submitNegotiationQuote(db,pm,r.id,1500,'首轮');model.recordCustomerOffer(db,pm,r.id,1000);model.addCreatorQuoteReply(db,op,r.id,1100);
  model.submitNegotiationQuote(db,pm,r.id,1300,'最新轮次');model.recordCustomerOffer(db,pm,r.id,1200);
  vm.runInContext("user=USERS.find(u=>u.id==='a');",h.context);
  const html=h.context.clientQuotePanel(r);
- assert.doesNotMatch(html,/quote-history|历史报价|对客报价 R1/);
- assert.match(html,/最新轮次/);assert.match(html,/data-kind="creatorQuoteReply"/);assert.match(html,/客户还价 R2/);
+ assert.match(html,/对客报价<\/span><span class="quote-record-round">R1/);
+ assert.match(html,/最新轮次/);assert.match(html,/data-kind="creatorQuoteReply"/);assert.match(html,/客户还价<\/span><span class="quote-record-round">R2/);
  assert.equal(model.clientQuoteHistory(r).length,2);
  vm.runInContext("user=USERS.find(u=>u.role==='pm');",h.context);
  assert.doesNotMatch(h.context.clientQuotePanel(r),/data-kind="creatorQuoteReply"/);
@@ -1327,9 +1607,9 @@ test('legacy creator-first proposal shows next quotation and retains acceptance 
  const h=harness(),db=h.context.readDB(),admin=model.USERS.find(u=>u.role==='admin'),p=db.campaigns.at(-1);
  const r=model.submitCreator(db,admin,db.creators[1].id,{campaignId:p.id,initial:500,rights:''});model.enablePackage(db,admin,r.id,{total:500,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:1}],rights:''});
  model.updateCoop(db,admin,r.id,'approve',{clientQuote:1100});model.submitNegotiationQuote(db,admin,r.id,1100);model.recordCustomerOffer(db,admin,r.id,1500);model.addCreatorQuoteReply(db,admin,r.id,700);model.updateCoop(db,admin,r.id,'confirmCreator');
- const html=h.context.clientQuotePanel(r);assert.match(html,/继续对客报价/);assert.match(html,/data-kind="negotiationQuote"/);assert.match(html,/<details class="customer-acceptance">/);assert.match(html,/客户接受报价/);assert.doesNotMatch(html,/<h4>客户确认<\/h4>|达人已确认方案，待客户确认。/);
+ const html=h.context.clientQuotePanel(r);assert.match(html,/继续对客报价/);assert.match(html,/data-kind="negotiationQuote"/);assert.match(html,/class="customer-feedback/);assert.match(html,/客户已接受/);assert.doesNotMatch(html,/<h4>客户确认<\/h4>|达人已确认方案，待客户确认。|name="clientPrice"/);
  const before=JSON.stringify(db);h.setFailure(true);const {form}=h.submit('negotiationQuote',{clientQuote:'1200',quoteNote:'next round'},r.id);assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(form.values.clientQuote,'1200');
- h.setFailure(false);h.submit('negotiationQuote',form.values,r.id);const saved=h.context.readDB().collaborations.find(x=>x.id===r.id);assert.equal(saved.status,'议价待客户确认');assert.equal(saved.clientQuotes.length,2);assert.match(h.context.clientQuotePanel(saved),/录入客户还价/);
+ h.setFailure(false);h.submit('negotiationQuote',form.values,r.id);const saved=h.context.readDB().collaborations.find(x=>x.id===r.id);assert.equal(saved.status,'议价待客户确认');assert.equal(saved.clientQuotes.length,2);assert.match(h.context.clientQuotePanel(saved),/客户提出还价/);
 });
 
 test('cancellation shares one reason field and records the selected business outcome',()=>{
@@ -1352,12 +1632,11 @@ test('compact customer acceptance retains PM handoff and operator order creation
  const r=model.submitCreator(db,model.USERS.find(u=>u.id==='a'),db.creators[1].id,{campaignId:p.id,initial:100,rights:''});
  model.enablePackage(db,admin,r.id,{total:100,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:1}],rights:''});
  vm.runInContext("user=USERS.find(u=>u.id==='pm1');",h.context);
- h.submit('approve',{clientQuote:'900'},r.id);h.submit('negotiationQuote',{clientQuote:'900'},r.id);
- const current=()=>h.context.readDB().collaborations.find(x=>x.id===r.id);
- const html=h.context.customerAcceptancePanel(current());assert.doesNotMatch(html,/<h4>客户确认<\/h4>|class="confirmation-status"/);assert.match(html,/客户接受报价/);assert.match(html,/name="clientPrice"/);assert.match(html,/确认并移交运营/);
- assert.match(html,/报价详情（选填）/);assert.doesNotMatch(html,/<textarea[^>]*required|请先修改上方方案/);
  const quoteDetails='2条，分发YouTube\n180天版权\n<script>alert("quote")</script>';
- h.submit('customerAccept',{clientPrice:'900',reason:quoteDetails},r.id);assert.equal(current().status,'待达人确认');
+ h.submit('approve',{clientQuote:'900'},r.id);h.submit('negotiationQuote',{clientQuote:'900',quoteNote:quoteDetails},r.id);
+ const current=()=>h.context.readDB().collaborations.find(x=>x.id===r.id);
+ const html=h.context.customerAcceptancePanel(current());assert.doesNotMatch(html,/<h4>客户确认<\/h4>|class="confirmation-status"|name="clientPrice"/);assert.match(html,/客户已接受/);assert.match(html,/data-kind="acceptCurrentQuote"/);
+ h.submit('acceptCurrentQuote',{quoteId:model.clientQuoteHistory(current()).at(-1).id,versionId:current().proposalVersions.at(-1).id},r.id);assert.equal(current().status,'待达人确认');
  assert.equal(h.stored().collaborations.find(x=>x.id===r.id).customerAcceptance.note,quoteDetails);
  assert.equal(current().proposalVersions.at(-1).items[0].quantity,1);assert.equal(current().proposalVersions.at(-1).rights,'');
  vm.runInContext("user=USERS.find(u=>u.id==='a');",h.context);const operatorPanel=h.context.customerAcceptancePanel(current());assert.match(operatorPanel,/data-action="confirmAndCreateOrder"/);
@@ -1368,6 +1647,93 @@ test('compact customer acceptance retains PM handoff and operator order creation
  assert.equal(current().customerAcceptance.note,quoteDetails);assert.equal(current().customerAcceptance.clientPrice,900);
  h.clickAction('confirmAndCreateOrder',r.id);assert.equal(model.proposalStatus(current()),'订单已创建');
  const saved=h.context.readDB(),items=saved.deliveryItems.filter(x=>x.orderId===current().orderId);assert.equal(items.length,2);assert.equal(saved.orders.find(x=>x.id===current().orderId).total,100);for(const item of items){assert.equal(item.final,50);assert.equal(item.clientPrice,450);assert.equal(model.margin(item),400);}
+});
+
+function customerFeedbackHarness(){
+ const h=harness(),db=h.context.readDB(),pm=model.USERS.find(u=>u.id==='pm1'),operator=model.USERS.find(u=>u.id==='a');
+ const project=projectFixture(db,pm,{name:'Customer feedback',client:'Synthetic',requirements:'',members:[operator.id]});
+ const r=model.submitPackage(db,operator,db.creators[1].id,{campaignId:project.id,total:100,currency:'USD',items:[{platform:'Instagram',type:'reel',quantity:2}],rights:'90天授权'});
+ const as=id=>vm.runInContext('user=USERS.find(u=>u.id==='+JSON.stringify(id)+');',h.context);
+ as(pm.id);h.submit('approve',{clientQuote:'175'},r.id);h.submit('negotiationQuote',{clientQuote:'175',quoteNote:'两条视频，90天授权'},r.id);
+ return {h,id:r.id,as,pm,operator,current:()=>h.context.readDB().collaborations.find(row=>row.id===r.id)};
+}
+
+test('customer feedback presents one current quote and one counteroffer form without retyping the accepted amount',()=>{
+ const {h,current}=customerFeedbackHarness(),before=JSON.stringify(h.context.readDB()),html=h.context.clientQuotePanel(current());
+ assert.match(html,/class="customer-feedback/);assert.match(html,/当前对客价/);assert.match(html,/USD 175/);
+ assert.match(html,/客户提出还价/);assert.match(html,/客户已接受/);assert.match(html,/保存还价/);
+ assert.equal((html.match(/data-kind="customerOffer"/g)||[]).length,1);
+ assert.equal((html.match(/data-kind="acceptCurrentQuote"/g)||[]).length,1);
+ assert.doesNotMatch(html,/name="clientPrice"|客户确认总价|确认并移交运营|移交运营议价/);
+ const acceptForm=html.match(/<form\b[^>]*data-kind="acceptCurrentQuote"[^>]*>[\s\S]*?<\/form>/)?.[0];
+ assert(acceptForm);assert.match(acceptForm,/name="quoteId"/);assert(acceptForm.includes(model.clientQuoteHistory(current()).at(-1).id));
+ assert.match(acceptForm,/name="versionId"/);assert(acceptForm.includes(current().proposalVersions.at(-1).id));
+ assert.doesNotMatch(acceptForm,/type="number"|<textarea/);
+ assert.equal(JSON.stringify(h.context.readDB()),before);
+});
+
+test('accepting the current quote derives the latest formal amount and terms without creating an order',()=>{
+ const {h,id,as,pm,operator,current}=customerFeedbackHarness();
+ h.submit('customerOffer',{clientQuote:'160',quoteNote:'客户预算'},id);
+ as(operator.id);h.submit('creatorQuoteReply',{clientQuote:'90'},id);
+ as(pm.id);h.submit('negotiationQuote',{clientQuote:'165',quoteNote:'最新两条视频，120天授权'},id);
+ const quote=model.clientQuoteHistory(current()).at(-1),orders=(h.context.readDB().orders||[]).length,videos=(h.context.readDB().deliveryItems||[]).length;
+ const values={quoteId:quote.id,versionId:current().proposalVersions.at(-1).id};
+ const result=h.submit('acceptCurrentQuote',{...values,clientPrice:'1',reason:'Untrusted replacement terms'},id);
+ assert.equal(current().status,'待达人确认');assert.equal(current().customerAcceptance.clientPrice,165);
+ assert.equal(current().customerAcceptance.note,'最新两条视频，120天授权');assert.equal(current().customerAcceptance.by,pm.id);
+ assert.equal(current().customerAcceptance.versionId,current().proposalVersions.at(-1).id);
+ assert.equal(model.clientQuoteHistory(current()).length,2);assert.equal(current().proposalVersions.at(-1).total,100);
+ assert.equal(current().creatorAcceptance,undefined);assert.equal(current().orderId,undefined);
+ assert.equal((h.context.readDB().orders||[]).length,orders);assert.equal((h.context.readDB().deliveryItems||[]).length,videos);
+ assert.equal(result.form.dataset.committed,'true');assert.equal(result.button.disabled,false);
+ const saved=JSON.stringify(h.stored());h.submit('acceptCurrentQuote',values,id);
+ assert.equal(JSON.stringify(h.stored()),saved);assert.equal(current().events.filter(event=>event.action==='customerAccept').length,1);
+});
+
+test('saving a customer counteroffer preserves rejected inputs and retries once against the current round',()=>{
+ const {h,id,current}=customerFeedbackHarness(),quote=model.clientQuoteHistory(current()).at(-1);
+ const before=JSON.stringify(h.context.readDB()),stored=JSON.stringify(h.stored()),values={clientQuote:'150',quoteNote:'客户希望保留120天授权'};
+ h.setFailure(true);const failed=h.submit('customerOffer',values,id);
+ assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+ assert.deepEqual(failed.form.values,values);assert.equal(failed.button.disabled,false);assert.match(h.message.textContent,/保存失败/);
+ h.setFailure(false);h.submit('customerOffer',failed.form.values,id);
+ const offers=current().customerOffers;assert.equal(offers.length,1);assert.equal(offers[0].amount,150);
+ assert.equal(offers[0].note,values.quoteNote);assert.equal(offers[0].quoteId,quote.id);assert.equal(offers[0].round,quote.round);
+ assert.equal(current().status,'待运营议价');assert.equal(model.clientQuoteHistory(current()).at(-1).amount,175);
+ assert.equal(model.customerAcceptanceFor(current()),null);assert.equal(current().orderId,undefined);
+});
+
+test('quick acceptance rejects stale or missing quote identities and unauthorized actors without writes',()=>{
+ const {h,id,as,pm,operator,current}=customerFeedbackHarness(),old=model.clientQuoteHistory(current()).at(-1);
+ h.submit('customerOffer',{clientQuote:'150'},id);as(operator.id);h.submit('creatorQuoteReply',{clientQuote:'90'},id);
+ as(pm.id);h.submit('negotiationQuote',{clientQuote:'160'},id);
+ const latest=model.clientQuoteHistory(current()).at(-1),versionId=current().proposalVersions.at(-1).id,before=JSON.stringify(h.context.readDB()),stored=JSON.stringify(h.stored());
+ for(const values of [{quoteId:old.id,versionId},{quoteId:'forged-quote',versionId},{quoteId:'',versionId},{quoteId:latest.id,versionId:'previous-version'},{quoteId:latest.id}]){
+  const result=h.submit('acceptCurrentQuote',values,id);
+  assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+  assert.equal(result.form.dataset.committed,undefined);assert.equal(result.button.disabled,false);
+  assert.match(h.message.textContent,/报价|确认|方案/);
+ }
+ for(const account of [operator.id,'b','pm2']){
+  as(account);assert.doesNotMatch(h.context.customerAcceptancePanel(current()),/data-kind="acceptCurrentQuote"/);
+  h.submit('acceptCurrentQuote',{quoteId:latest.id,versionId},id);
+  assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+ }
+});
+
+test('quick acceptance rolls back on save failure and retries the same quote without duplicate confirmation',()=>{
+ const {h,id,current}=customerFeedbackHarness(),quote=model.clientQuoteHistory(current()).at(-1);
+ const before=JSON.stringify(h.context.readDB()),stored=JSON.stringify(h.stored());h.setFailure(true);
+ const failed=h.submit('acceptCurrentQuote',{quoteId:quote.id,versionId:current().proposalVersions.at(-1).id},id);
+ assert.equal(JSON.stringify(h.context.readDB()),before);assert.equal(JSON.stringify(h.stored()),stored);
+ assert.equal(failed.form.values.quoteId,quote.id);assert.equal(failed.form.dataset.committed,undefined);
+ assert.equal(failed.button.disabled,false);assert.match(h.message.textContent,/保存失败/);
+ h.setFailure(false);const retry=h.submit('acceptCurrentQuote',failed.form.values,id);
+ assert.equal(current().status,'待达人确认');assert.equal(current().customerAcceptance.clientPrice,175);
+ assert.equal(retry.form.dataset.committed,'true');assert.equal(model.clientQuoteHistory(current()).length,1);
+ assert.equal(current().events.filter(event=>event.action==='customerAccept').length,1);
+ assert.equal(current().orderId,undefined);
 });
 
 

@@ -211,3 +211,85 @@
  #crm-preview .resource-management-block{grid-template-columns:minmax(0,1fr);gap:12px}
  #crm-preview .resource-row-actions{display:flex;gap:10px;justify-content:flex-start}
 }
+
+/* Creator detail only: grouped profile, compact proposal and persistent submit actions. */
+#crm-preview.ds-projects main:has(.creator-detail-page){max-width:1720px}
+#crm-preview.ds-projects .creator-detail-page{max-width:none;width:100%;gap:16px}
+#crm-preview.ds-projects .creator-detail-page:has(.creator-submit-actions){padding-bottom:calc(88px + env(safe-area-inset-bottom,0px))}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-panel{padding:20px 24px;gap:16px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-title{gap:8px 12px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-title h1{font:var(--type-page)}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-info{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-group{display:grid;align-content:start;gap:8px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-group+.creator-summary-group{padding-left:24px;border-left:1px solid var(--line)}
+#crm-preview.ds-projects .creator-detail-page :is(.creator-summary-group,.creator-summary-accounts-heading) h2{margin:0;font:var(--type-label);font-weight:600;color:var(--ink)}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px 20px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-facts>div{display:grid;align-content:start;gap:2px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-facts dt{font:var(--type-secondary)}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-facts dd{font:var(--type-body)}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-group+.creator-summary-group .creator-summary-facts{grid-template-columns:minmax(0,1fr)}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-accounts{padding-top:12px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-accounts-heading{display:flex;align-items:center;gap:12px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-account{grid-template-columns:90px minmax(0,1fr) auto auto auto;padding-top:10px;gap:8px 24px}
+#crm-preview.ds-projects .creator-detail-page .creator-summary-account+.creator-summary-account{margin-top:10px;border-top:1px solid var(--line)}
+#crm-preview.ds-projects .creator-detail-page .creator-page-body>.creator-section{padding:20px 24px;gap:16px}
+#crm-preview.ds-projects .creator-detail-page .creator-page-body>.creator-submission{padding:16px 20px;gap:12px}
+#crm-preview.ds-projects .creator-detail-page .creator-submission-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-submission-heading-actions{display:flex;align-items:center;gap:16px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-submitter{font:var(--type-secondary);color:var(--dim);overflow-wrap:anywhere}
+#crm-preview.ds-projects .creator-detail-page .creator-submission-heading-actions>button{height:32px;padding:0 12px;flex-shrink:0}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-form{min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-form>.grid{gap:14px 24px}
+#crm-preview.ds-projects .creator-detail-page .creator-project-reviewers{display:grid;align-content:start;gap:12px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-submission label{gap:6px}
+#crm-preview.ds-projects .creator-detail-page .proposal-deliverables{gap:10px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .proposal-delivery-row{grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(80px,.35fr) auto;gap:16px;align-items:end;padding:0;border:0;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .proposal-delivery-row>button{height:40px;padding:0 12px;border:0;background:transparent;color:var(--brand);white-space:nowrap}
+#crm-preview.ds-projects .creator-detail-page .creator-delivery-extras{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:start;gap:8px 16px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .proposal-platform-picker{min-width:0}
+#crm-preview.ds-projects .creator-detail-page .proposal-platform-picker>button{height:32px;padding:0 12px;border:0;background:transparent;color:var(--brand);font:var(--type-label)}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-notes{min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-notes>summary{width:fit-content;max-width:100%;min-height:32px;margin-left:auto;padding:6px 0;font:var(--type-label);color:var(--dim);cursor:pointer;overflow-wrap:anywhere}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-notes>summary:hover{color:var(--brand)}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-notes>summary:focus-visible{outline:2px solid var(--brand);outline-offset:2px;border-radius:var(--radius-control)}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-notes[open]{grid-column:1/-1}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-notes textarea{width:100%;min-height:76px;margin:4px 0 0;padding:10px 12px;resize:vertical;font:var(--type-body)}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-pricing{min-width:0;padding-top:12px;border-top:1px solid var(--line)}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-pricing>.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 24px}
+#crm-preview.ds-projects .creator-detail-page #submission-message:empty{display:none}
+#crm-preview.ds-projects .creator-detail-page .creator-proposal-form :is(input,select,textarea){scroll-margin-top:calc(var(--header-height,64px) + 24px);scroll-margin-bottom:120px;min-width:0}
+#crm-preview.ds-projects .creator-detail-page .creator-submit-actions{position:fixed;inset:auto 0 0;z-index:30;margin:0;padding:12px max(24px,calc((100% - 1656px)/2));padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:12px;background:var(--paper);border-top:1px solid var(--line);box-shadow:0 -4px 20px #1f293708}
+#crm-preview.ds-projects .creator-detail-page .creator-submit-hint{flex:1;min-width:0;font:var(--type-label);color:var(--dim)}
+#crm-preview.ds-projects .creator-detail-page .creator-submit-actions>button{flex-shrink:0}
+@media(max-width:1000px){
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-info{grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:20px}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-facts{grid-template-columns:repeat(2,minmax(0,1fr))}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-account{grid-template-columns:90px minmax(0,1fr) auto auto;gap:6px 16px}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-account small{grid-column:2/-1}
+}
+@media(max-width:760px){
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-panel,#crm-preview.ds-projects .creator-detail-page .creator-page-body>.creator-section{padding:16px}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-info{grid-template-columns:minmax(0,1fr);gap:16px}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-group+.creator-summary-group{padding:12px 0 0;border-left:0;border-top:1px solid var(--line)}
+ #crm-preview.ds-projects .creator-detail-page .creator-proposal-form>.grid{grid-template-columns:minmax(0,1fr)}
+ #crm-preview.ds-projects .creator-detail-page .creator-submission-heading-actions{gap:8px}
+ #crm-preview.ds-projects .creator-detail-page .proposal-delivery-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 16px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+ #crm-preview.ds-projects .creator-detail-page .proposal-delivery-row>button{justify-self:end}
+ #crm-preview.ds-projects .creator-detail-page .creator-proposal-pricing>.grid{grid-template-columns:minmax(0,1fr)}
+ #crm-preview.ds-projects .creator-detail-page .creator-submit-actions{flex-wrap:nowrap;padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom,0px));gap:8px}
+ #crm-preview.ds-projects .creator-detail-page .creator-submit-hint{display:none}
+ #crm-preview.ds-projects .creator-detail-page .creator-submit-actions>button{height:auto;min-height:44px;padding:10px 12px}
+ #crm-preview.ds-projects .creator-detail-page .creator-submit-actions>button.primary{flex:1;min-width:0;white-space:normal}
+}
+@media(max-width:480px){
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-title h1{font-size:20px;line-height:28px}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-heading{gap:12px;align-items:flex-start}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-heading>button{padding:0 12px}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-account{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px 12px}
+ #crm-preview.ds-projects .creator-detail-page .summary-account-link{grid-column:1/-1}
+ #crm-preview.ds-projects .creator-detail-page .creator-summary-account small{grid-column:1/-1}
+ #crm-preview.ds-projects .creator-detail-page .creator-submission-heading{flex-wrap:wrap}
+ #crm-preview.ds-projects .creator-detail-page .creator-submission-heading-actions{flex:1;justify-content:flex-end}
+ #crm-preview.ds-projects .creator-detail-page .proposal-delivery-row{grid-template-columns:minmax(0,1fr)}
+ #crm-preview.ds-projects .creator-detail-page .creator-delivery-extras{grid-template-columns:minmax(0,1fr);gap:4px}
+}
